@@ -1,0 +1,82 @@
+/* SignUp.css */
+.signup-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f0f2f5; /* Light grey background */
+  font-family: Arial, sans-serif;
+}
+
+.signup-container form {
+  background: white;
+  padding: 40px;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Softer shadow */
+  width: 100%;
+  max-width: 450px; /* Slightly wider form */
+  text-align: center;
+}
+
+.signup-container h2 {
+  margin-bottom: 30px;
+  color: #333;
+  font-size: 2em;
+}
+
+.form-group {
+  margin-bottom: 25px; /* More spacing between groups */
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: bold;
+  color: #555;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="password"] {
+  width: calc(100% - 22px); /* Adjust for padding and border */
+  padding: 11px;
+  border: 1px solid #ccc; /* Lighter border */
+  border-radius: 5px;
+  font-size: 17px;
+  box-sizing: border-box; /* Include padding and border in element's total width and height */
+}
+
+.signup-container button {
+  width: 100%;
+  padding: 14px; /* Larger button */
+  background-color: #28a745; /* Green for signup */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 19px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.signup-container button:hover {
+  background-color: #218838; /* Darker green on hover */
+}
+
+.error-message {
+  color: #dc3545; /* Red color for errors */
+  background-color: #f8d7da; /* Light red background */
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  padding: 10px;
+  margin-bottom: 20px;
+}
+
+.success-message {
+  color: #28a745; /* Green color for success */
+  background-color: #d4edda; /* Light green background */
+  border: 1px solid #c3e6cb;
+  border-radius: 4px;
+  padding: 10px;
+  margin-bottom: 20px;
+}
