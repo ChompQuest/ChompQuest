@@ -1,64 +1,55 @@
 import React, { useState } from 'react';
-import './SignUp.css'; // This line imports your CSS file
+import './SignUp.css'; // Make sure this CSS file exists and is linked
 
 const SignUp: React.FC = () => {
-  // State variables to hold the input values
-  const [username, setUsername] = useState<string>('');
-  const [email, setEmail] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
-  const [confirmPassword, setConfirmPassword] = useState<string>('');
-  const [error, setError] = useState<string>(''); // For displaying error messages
-  const [success, setSuccess] = useState<string>(''); // For displaying success messages
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
-  // Function to handle form submission
   const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault(); // Prevent default form submission (page reload)
-    setError(''); // Clear any previous errors
-    setSuccess(''); // Clear any previous success messages
+    event.preventDefault(); // can't submit on default
 
-    // Basic client-side validation
+    // clears any prev errors
+    setError(null); 
+    setSuccess(null);
+
     if (!username || !email || !password || !confirmPassword) {
       setError('All fields are required.');
       return;
     }
-
     if (password !== confirmPassword) {
       setError('Passwords do not match.');
       return;
     }
-
     if (password.length < 6) {
       setError('Password must be at least 6 characters long.');
       return;
     }
 
-    // --- IMPORTANT: This is where you will integrate with your backend ---
-    // For now, we'll just log the data and simulate a successful response.
-    console.log('Attempting to create account with:', { username, email, password });
-
     try {
-      // Replace 'YOUR_BACKEND_SIGNUP_API_ENDPOINT' with the actual URL
-      // your backend team will provide for user registration.
-      // Example: 'http://localhost:3001/api/auth/signup'
+      // can be connected to backend here, if other method, we can delete line 32-60
       const response = await fetch('YOUR_BACKEND_SIGNUP_API_ENDPOINT', {
-        method: 'POST', // Use POST for creating new resources
+        method: 'POST',
         headers: {
-          'Content-Type': 'application/json', // Indicate that you're sending JSON
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, email, password }), // Send data as JSON
+        body: JSON.stringify({ username, email, password }),
       });
 
-      const data = await response.json(); // Parse the JSON response from the backend
+      const data = await response.json(); 
 
-      if (response.ok) { // Check if the response status is 2xx (success)
+      if (response.ok) {
         setSuccess('Account created successfully! You can now log in.');
-        // In a real app, you might redirect to the login page
-        // For example, if you set up react-router-dom: navigate('/login');
-      } else {
-        // Handle errors from the backend (e.g., user already exists)
+      } 
+      else {
         setError(data.message || 'Failed to create account. Please try again.');
       }
-    } catch (err) {
+    } 
+    catch (err) {
+      // this is to test if backend is connected or not
       console.error('Signup error:', err);
       setError('Network error. Could not connect to the server.');
     }
@@ -66,13 +57,13 @@ const SignUp: React.FC = () => {
 
   return (
     <div className="signup-container">
+      <h3>Welcome to ChompQuest! <br /> This site was built to help you keep track of your goals while making it fun! Let's play</h3>
+      <h2>Create an Account</h2>
+      {error && <div className="error-message">{error}</div>}
+      {success && <div className="success-message">{success}</div>}
       <form onSubmit={handleSubmit}>
-        <h2>Create Your ChompQuest Account</h2>
-        {error && <p className="error-message">{error}</p>}
-        {success && <p className="success-message">{success}</p>}
-
         <div className="form-group">
-          <label htmlFor="username">Username:</label>
+          <label htmlFor="username">Username</label>
           <input
             type="text"
             id="username"
@@ -81,9 +72,8 @@ const SignUp: React.FC = () => {
             required
           />
         </div>
-
         <div className="form-group">
-          <label htmlFor="email">Email:</label>
+          <label htmlFor="email">Email</label>
           <input
             type="email"
             id="email"
@@ -92,9 +82,8 @@ const SignUp: React.FC = () => {
             required
           />
         </div>
-
         <div className="form-group">
-          <label htmlFor="password">Password:</label>
+          <label htmlFor="password">Password</label>
           <input
             type="password"
             id="password"
@@ -103,9 +92,8 @@ const SignUp: React.FC = () => {
             required
           />
         </div>
-
         <div className="form-group">
-          <label htmlFor="confirmPassword">Confirm Password:</label>
+          <label htmlFor="confirmPassword">Confirm Password</label>
           <input
             type="password"
             id="confirmPassword"
@@ -114,7 +102,6 @@ const SignUp: React.FC = () => {
             required
           />
         </div>
-
         <button type="submit">Sign Up</button>
       </form>
     </div>
