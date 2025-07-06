@@ -1,7 +1,7 @@
 {
-  "name": "server",
+  "name": "chompquest-server",
   "version": "1.0.0",
-  "description": "Node.js, Express, and MongoDB REST CRUD API",
+  "description": "ChompQuest Backend API - Goal tracking and user management",
   "type": "module",
   "main": "server.js",
   "scripts": {

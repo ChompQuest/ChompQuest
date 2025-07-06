@@ -30,8 +30,8 @@ const SignUp: React.FC = () => {
     }
 
     try {
-      // can be connected to backend here, if other method, we can delete line 32-60
-      const response = await fetch('YOUR_BACKEND_SIGNUP_API_ENDPOINT', {
+      // Connect to backend API
+      const response = await fetch('http://localhost:5050/user/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
