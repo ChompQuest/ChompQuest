@@ -104,6 +104,9 @@ const SignUp: React.FC = () => {
         </div>
         <button type="submit">Sign Up</button>
       </form>
+      <div className="signin-link">
+        <p>Already have an account? <a href="/signin">Sign In</a></p>
+      </div>
     </div>
   );
 };
