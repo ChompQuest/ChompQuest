@@ -4,11 +4,11 @@ name: CI
 
 # Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the main branch
+  # Triggers the workflow on push events for all branches
   push:
-    branches: [ $default-branch ]
+  # Triggers the workflow on pull request events for the main branch
   pull_request:
-    branches: [ $default-branch ]
+    branches: [ main ] # Or your default branch name
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -16,43 +16,49 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
     environment: Testing
     strategy:
       matrix:
-        node-version: [14.x , 16.x]
+        node-version: [16.x] # It's good practice to use a specific LTS version
       max-parallel: 1  
     
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
-        with: 
-          ref: 'main-test'
+      - uses: actions/checkout@v3 # It's recommended to use a more recent version
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
 
       - name: Install server npm packages
-        uses: bahmutov/npm-install@v1
-        with:
-          working-directory: mern/server
+        run: npm install
+        working-directory: mern/server
 
       - name: Install client npm packages
-        uses: bahmutov/npm-install@v1
-        with:
-          working-directory: mern/client
+        run: npm install
+        working-directory: mern/client
 
       - name: Start server in the background
         env: 
           ATLAS_URI: ${{ secrets.ATLAS_URI }}
-        run: (cd mern/server && echo "ATLAS_URI=$ATLAS_URI" > config.env  && npm start &)
+        run: |
+          cd mern/server
+          echo "ATLAS_URI=$ATLAS_URI" > config.env
+          npm start &
+        working-directory: mern/server
 
       - name: Start React app in the background
-        run: (cd mern/client && npm start &)
+        run: npm run dev &
+        working-directory: mern/client
 
       - name: Install Cypress and run tests
-        uses: cypress-io/github-action@v2
+        uses: cypress-io/github-action@v6
         with:
           working-directory: mern/client
-        
+          start: npm run dev
+          wait-on: 'http://localhost:5173'
