@@ -1,0 +1,50 @@
+/* src/components/NutritionTracker.css */
+
+.nutrition-tracker-container {
+  position: fixed; /* Important: Fixes the component relative to the viewport */
+  top: 20px;       /* Distance from the top of the screen */
+  right: 20px;     /* Distance from the right of the screen */
+  width: 150px;    /* Overall width of the tracker's container */
+  height: auto;    /* Height adjusts to content */
+  background-color: rgba(255, 255, 255, 0.9); /* Slightly transparent white background for the box */
+  border-radius: 12px; /* Rounded corners for the container */
+  padding: 15px;       /* Internal spacing */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
+  display: flex;         /* Use flexbox for internal layout */
+  flex-direction: column; /* Stack SVG and details vertically */
+  align-items: center;   /* Center items horizontally within the container */
+  z-index: 1000;         /* Ensures it stays on top of other content */
+}
+
+.nutrition-rings-svg {
+  width: 100px; /* Size of the SVG drawing area within the container */
+  height: 100px;
+  margin-bottom: 10px; /* Space between rings and text details */
+}
+
+/* Base style for all SVG circles (background and progress) */
+.ring-background,
+.ring-progress {
+  transition: stroke-dashoffset 0.5s ease-out; /* Smooth animation for progress changes */
+}
+
+/* Nutritional details text block */
+.nutrition-details {
+  width: 100%; /* Take full width of its parent (.nutrition-tracker-container) */
+  font-size: 0.8em; /* Smaller font for details */
+}
+
+/* Individual nutrient line item (e.g., "Calories: 1200 / 2000") */
+.nutrient-item {
+  display: flex;
+  justify-content: space-between; /* Puts label and value on opposite ends */
+  margin-bottom: 4px; /* Space between each nutrient line */
+}
+
+.nutrient-label {
+  font-weight: bold;
+}
+
+.nutrient-value {
+  color: #555; /* Slightly muted color for values */
+}

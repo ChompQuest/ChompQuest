@@ -5,6 +5,17 @@
   text-align: center;
 }
 
+.App-container {
+    display: flex;
+    flex-direction: column; /* Stack children vertically */
+    justify-content: center; /* Center children vertically */
+    align-items: center;    /* Center children horizontally */
+    min-height: 100vh;      /* Ensures the container takes full viewport height */
+    width: 100%;            /* Ensures the container takes full viewport width */
+    background-color: #f0f2f5; /* Light grey background for the entire page */
+    position: relative; /* Provides a positioning context for any absolutely/fixed positioned children if needed */
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;
