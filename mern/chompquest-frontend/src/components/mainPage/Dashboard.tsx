@@ -1,19 +1,13 @@
 import React from 'react';
 import NutritionTracker from './NutritionTracker'; 
+import type { NutrientData } from './NutritionTracker';
 import '../../App.css'; 
-
-interface NutrientData {
-  calories: number;
-  protein: number;
-  carbs: number;
-  fats: number;
-}
 
 interface DashboardProps {
   dailyNutrition: NutrientData;
   dailyGoals: NutrientData;
   logMeal: (newIntake: NutrientData) => void;
-  onLogout: () => void; // Function to handle logging out
+  onLogout: () => void; 
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ dailyNutrition, dailyGoals, logMeal, onLogout }) => {
@@ -32,6 +26,7 @@ const Dashboard: React.FC<DashboardProps> = ({ dailyNutrition, dailyGoals, logMe
       <button onClick={onLogout} style={{ marginTop: '20px', padding: '10px 20px', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
         Log Out
       </button>
+      {/* delete line 27 to 35 once done testing */}
 
     </div>
   );

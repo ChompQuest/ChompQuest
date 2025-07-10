@@ -7,7 +7,7 @@ import Dashboard from './components/mainPage/Dashboard';
 import './App.css'; 
 function App() {
 
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(true); // set to true to test nutrition tracker, set to false when testing real web
 
   const handleLogin = () => {
     setIsLoggedIn(true);
@@ -47,16 +47,9 @@ function App() {
   return (
     <Router>
       <div className="App">
-        {/* <Routes>
-          <Route path="/" element={<SignIn />} />
-          <Route path="/signin" element={<SignIn />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes> */}
-
+        
         <Routes>
-          {/* Public Routes: Accessible regardless of login status */}
-          {/* If already logged in, navigating to /signin or /signup will redirect to /dashboard */}
+         {/* checks if person is signed in or not */}
           <Route
             path="/signin"
             element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <SignIn onLogin={handleLogin} />}
@@ -71,14 +64,14 @@ function App() {
             path="/dashboard"
             element={
               isLoggedIn ? (
-                <Dashboard // Render Dashboard and pass necessary props
+                <Dashboard 
                   dailyNutrition={dailyNutrition}
                   dailyGoals={dailyGoals}
                   logMeal={logMeal}
-                  onLogout={handleLogout} // Pass the logout handler
+                  onLogout={handleLogout} 
                 />
               ) : (
-                <Navigate to="/signin" replace /> // Redirect if not logged in
+                <Navigate to="/signin" replace /> // if not logged in, go sign in 
               )
             }
           />
@@ -89,7 +82,7 @@ function App() {
             element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <Navigate to="/signin" replace />}
           />
 
-          {/* Catch-all Route: For any unmatched paths, redirect to the default route */}
+          {/* catch all route for any issues */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>

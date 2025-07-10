@@ -1,44 +1,39 @@
-/* src/components/NutritionTracker.css */
-
 .nutrition-tracker-container {
-  position: fixed; /* Important: Fixes the component relative to the viewport */
-  top: 20px;       /* Distance from the top of the screen */
-  right: 20px;     /* Distance from the right of the screen */
-  width: 150px;    /* Overall width of the tracker's container */
-  height: auto;    /* Height adjusts to content */
-  background-color: rgba(255, 255, 255, 0.9); /* Slightly transparent white background for the box */
-  border-radius: 12px; /* Rounded corners for the container */
-  padding: 15px;       /* Internal spacing */
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
-  display: flex;         /* Use flexbox for internal layout */
-  flex-direction: column; /* Stack SVG and details vertically */
-  align-items: center;   /* Center items horizontally within the container */
-  z-index: 1000;         /* Ensures it stays on top of other content */
+  position: fixed; 
+  top: 25px;       
+  right: 25px;     
+  width: 350px;    
+  height: 350px;    
+  background-color: rgba(255, 255, 255, 0.9); 
+  border-radius: 15px;
+  padding: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); 
+  display: flex;         
+  flex-direction: column; 
+  align-items: center;
+  z-index: 1000;
 }
 
 .nutrition-rings-svg {
-  width: 100px; /* Size of the SVG drawing area within the container */
-  height: 100px;
-  margin-bottom: 10px; /* Space between rings and text details */
+  width: 250px; 
+  height: 250px;
+  margin-bottom: 10px; 
 }
 
-/* Base style for all SVG circles (background and progress) */
 .ring-background,
 .ring-progress {
-  transition: stroke-dashoffset 0.5s ease-out; /* Smooth animation for progress changes */
+  transition: stroke-dashoffset 0.5s ease-out;
 }
 
-/* Nutritional details text block */
 .nutrition-details {
-  width: 100%; /* Take full width of its parent (.nutrition-tracker-container) */
-  font-size: 0.8em; /* Smaller font for details */
+  width: 100%; 
+  font-size: 1em; 
 }
 
-/* Individual nutrient line item (e.g., "Calories: 1200 / 2000") */
 .nutrient-item {
   display: flex;
-  justify-content: space-between; /* Puts label and value on opposite ends */
-  margin-bottom: 4px; /* Space between each nutrient line */
+  justify-content: space-between; 
+  margin-bottom: 4px; 
 }
 
 .nutrient-label {
@@ -46,5 +41,5 @@
 }
 
 .nutrient-value {
-  color: #555; /* Slightly muted color for values */
+  color: #555; 
 }
