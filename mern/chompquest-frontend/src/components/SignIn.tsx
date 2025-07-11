@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
-import './SignIn.css'; // Make sure this CSS file exists and is linked
+import { Link, useNavigate } from 'react-router-dom';
+import './SignIn.css'; 
 
-const SignIn: React.FC = () => {
+interface SignInProps {
+  onLogin: () => void;
+}
+
+const SignIn: React.FC <SignInProps> = ({onLogin}) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
