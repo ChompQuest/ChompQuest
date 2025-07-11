@@ -1,0 +1,250 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%; 
+    height: 100%; 
+    overflow-x: hidden; 
+}
+
+.nutrition-goals-outer {
+    width: 100%;
+    min-height: 100vh;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+.nutrition-goals-title {
+    width: 100%;
+    text-align: center;
+    margin-top: 32px;
+    margin-bottom: 0;
+}
+
+.nutrition-goals-title h2 {
+    margin: 0 0 18px 0;
+    color: #222;
+    font-size: 2em;
+    font-weight: bold;
+}
+
+.nutrition-goals-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.10);
+    max-width: 900px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 20px 20px 56px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.nutrition-goals-card form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.nutrition-goals-halves {
+    display: flex;
+    flex-direction: row;
+    gap: 28px;
+    width: 100%;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.nutrition-goals-half {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 340px;
+    text-align: left;
+}
+
+.nutrition-goals-half h4 {
+    color: #333;
+    font-size: 1.08em;
+    margin-bottom: 12px;
+    margin-top: 0;
+    text-align: center;
+    font-weight: bold;
+}
+
+.form-group {
+    margin-bottom: 10px;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: bold;
+    color: #555;
+    font-size: 0.95em;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="password"],
+.form-group input[type="number"],
+.form-group select {
+    width: 100%;
+    padding: 6px 10px;
+    border: 2px solid #e1e5e9;
+    border-radius: 7px;
+    font-size: 14px;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+    background-color: #ffffff;
+}
+
+.form-group input[type="text"]:hover,
+.form-group input[type="email"]:hover,
+.form-group input[type="password"]:hover,
+.form-group input[type="number"]:hover {
+    border-color: #28a745;
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="email"]:focus,
+.form-group input[type="password"]:focus,
+.form-group input[type="number"]:focus {
+    outline: none;
+    border-color: #28a745;
+    box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.08);
+}
+
+.form-group select {
+    background-color: white;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23555' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 36px;
+    border-radius: 7px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.form-group select:focus {
+    outline: none;
+    border-color: #28a745;
+    box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.08), 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+.height-inputs {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.height-inputs input {
+    width: 48px !important;
+    text-align: center;
+    font-size: 14px;
+    padding: 5px 0;
+}
+
+.height-inputs span {
+    font-weight: bold;
+    color: #555;
+    min-width: 16px;
+    font-size: 0.95em;
+}
+
+.recommended-text {
+    display: block;
+    font-size: 0.82em;
+    color: #17a2b8;
+    margin-top: 3px;
+    font-style: italic;
+}
+
+.nutrition-goals-card button[type="submit"] {
+    width: 100%;
+    padding: 8px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 18px;
+    display: block;
+}
+
+.nutrition-goals-card button[type="submit"]:hover {
+    background-color: #218838;
+}
+
+.nutrition-goals-card button[type="submit"]:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.error-message {
+    color: #dc3545;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+    padding: 8px;
+    margin-bottom: 10px;
+    text-align: center;
+    font-size: 0.95em;
+}
+
+.success-message {
+    color: #28a745;
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    border-radius: 4px;
+    padding: 8px;
+    margin-bottom: 10px;
+    text-align: center;
+    font-size: 0.95em;
+}
+
+@media (max-width: 900px) {
+    .nutrition-goals-card {
+        padding: 12px 2vw 40px 2vw;
+    }
+    .nutrition-goals-halves {
+        gap: 10px;
+    }
+}
+
+@media (max-width: 768px) {
+    .nutrition-goals-title {
+        margin-top: 12px;
+    }
+    .nutrition-goals-card {
+        padding: 6px 1vw 32px 1vw;
+        max-width: 99vw;
+    }
+    .nutrition-goals-halves {
+        flex-direction: column;
+        gap: 0;
+    }
+    .nutrition-goals-half {
+        max-width: 100%;
+        margin-bottom: 12px;
+    }
+    .height-inputs {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+    .height-inputs input {
+        width: 100% !important;
+    }
+}
