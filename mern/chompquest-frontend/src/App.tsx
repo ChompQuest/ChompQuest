@@ -19,7 +19,7 @@ function App() {
     // here we need to clear any tokens
   };
 
-  // dummy test for nutrition tracker
+  // dummy test for nutrition tracker, will change when we have add meal
   const [dailyNutrition, setDailyNutrition] = useState({
     calories: 1200,
     protein: 80,
@@ -42,7 +42,7 @@ function App() {
       fats: prev.fats + newIntake.fats,
     }));
   };
-  // test ends, delete when done
+  // test ends
 
   return (
     <Router>
