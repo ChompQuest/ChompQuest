@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import type { NutritionGoals } from '../utils/nutritionCalculator';
+import type { NutritionGoals as NutritionGoalsType } from '../utils/nutritionCalculator';
 import { 
   calculateRecommendedMetrics,
   feetInchesToCm,
@@ -145,7 +145,7 @@ const NutritionGoals: React.FC = () => {
       const heightCm = feetInchesToCm(heightFeet as number, heightInches as number);
       const weightKg = lbsToKg(weightLbs as number);
 
-      const nutritionGoals: NutritionGoals = {
+      const nutritionGoals: NutritionGoalsType = {
         sex: sex as 'male' | 'female',
         height: heightCm,
         weight: weightKg,
