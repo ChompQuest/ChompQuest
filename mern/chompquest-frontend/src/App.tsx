@@ -2,12 +2,13 @@ import React, {useState} from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import SignIn from './components/SignIn'; 
 import SignUp from './components/SignUp';
+import NutritionGoals from './components/NutritionGoals';
 import Dashboard from './components/mainPage/Dashboard';
 
 import './App.css'; 
 function App() {
 
-  const [isLoggedIn, setIsLoggedIn] = useState(true); // set to true to test nutrition tracker, set to false when testing real web
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // set to false to show sign in page as default
 
   const handleLogin = () => {
     setIsLoggedIn(true);
@@ -83,6 +84,7 @@ function App() {
           />
 
           {/* catch all route for any issues */}
+          <Route path="/nutrition-goals" element={<NutritionGoals />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>

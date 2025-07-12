@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './SignUp.css'; // Make sure this CSS file exists and is linked
 
 const SignUp: React.FC = () => {
+  const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -42,7 +44,16 @@ const SignUp: React.FC = () => {
       const data = await response.json(); 
 
       if (response.ok) {
-        setSuccess('Account created successfully! You can now log in.');
+        setSuccess('Account created successfully! Redirecting to set up your nutrition goals...');
+        // Redirect to nutrition goals page after successful signup
+        setTimeout(() => {
+          navigate('/nutrition-goals', { 
+            state: { 
+              isNewUser: true, 
+              userId: data.userId 
+            } 
+          });
+        }, 2000);
       } 
       else {
         setError(data.message || 'Failed to create account. Please try again.');
