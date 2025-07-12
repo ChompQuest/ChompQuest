@@ -2,7 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './SignUp.css'; // Make sure this CSS file exists and is linked
 
-const SignUp: React.FC = () => {
+interface SignUpProps {
+  onLogin: () => void;
+}
+
+const SignUp: React.FC<SignUpProps> = ({ onLogin }) => {
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -45,6 +49,17 @@ const SignUp: React.FC = () => {
 
       if (response.ok) {
         setSuccess('Account created successfully! Redirecting to set up your nutrition goals...');
+        
+        // Store user data in localStorage
+        localStorage.setItem('user', JSON.stringify({
+          userId: data.userId,
+          username: username,
+          isLoggedIn: true
+        }));
+        
+        // Call the onLogin callback to update parent state
+        onLogin();
+        
         // Redirect to nutrition goals page after successful signup
         setTimeout(() => {
           navigate('/nutrition-goals', { 

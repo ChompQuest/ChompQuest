@@ -1,7 +1,8 @@
 export interface NutritionGoals {
   sex: 'male' | 'female';
-  height: number; // in cm
-  weight: number; // in kg
+  height: number; // in feet
+  heightInches: number; // in inches
+  weight: number; // in lbs
   age: number;
   activityLevel: 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active' | 'extremely_active';
   calorieGoal: number;
@@ -22,16 +23,19 @@ export interface RecommendedMetrics {
 // Placeholder function for calculating recommended nutrition metrics
 export const calculateRecommendedMetrics = (
   sex: 'male' | 'female',
-  height: number,
-  weight: number,
+  heightFeet: number,
+  heightInches: number,
+  weightLbs: number,
   age: number,
-  activityLevel: 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active' | 'extremely_active'
+  activityLevel: 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active'
 ): RecommendedMetrics => {
-  // TODO: Implement actual nutrition calculation logic
-  // This is a placeholder that returns reasonable defaults
+  // Convert imperial to metric for calculations
+  const heightCm = feetInchesToCm(heightFeet, heightInches);
+  const weightKg = lbsToKg(weightLbs);
   
   // Basic BMR calculation (Mifflin-St Jeor Equation)
-  let bmr = 10 * weight + 6.25 * height - 5 * age;
+  // bmr = 10 * weightKg + 6.25 * heightCm - 5 * age; (add 5 for males, subtract 161 for females)
+  let bmr = 10 * weightKg + 6.25 * heightCm - 5 * age;
   bmr = sex === 'male' ? bmr + 5 : bmr - 161;
   
   // Activity multipliers
@@ -47,8 +51,8 @@ export const calculateRecommendedMetrics = (
   
   return {
     recommendedCalories: Math.round(tdee),
-    recommendedWater: Math.round(weight * 35), // 35ml per kg body weight
-    recommendedProtein: Math.round(weight * 1.6), // 1.6g per kg body weight
+    recommendedWater: Math.round(weightKg * 35), // 35ml per kg body weight
+    recommendedProtein: Math.round(weightKg * 1.6), // 1.6g per kg body weight
     recommendedCarbs: Math.round((tdee * 0.45) / 4), // 45% of calories from carbs
     recommendedFat: Math.round((tdee * 0.25) / 9) // 25% of calories from fat
   };
