@@ -12,10 +12,12 @@ const SignIn: React.FC <SignInProps> = ({onLogin}) => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault(); // can't submit on default
+  const navigate = useNavigate();
 
-    // clears any prev errors
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    // Clear any previous errors
     setError(null); 
     setSuccess(null);
 
@@ -30,7 +32,7 @@ const SignIn: React.FC <SignInProps> = ({onLogin}) => {
 
     try {
       // Connect to backend API for sign in
-      const response = await fetch('http://localhost:5050/user/signin', {
+      const response = await fetch('http://localhost:5050/user/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -42,14 +44,27 @@ const SignIn: React.FC <SignInProps> = ({onLogin}) => {
 
       if (response.ok) {
         setSuccess('Successfully signed in!');
-        // TODO: Store auth token and redirect to dashboard
+        
+        // Store user data in localStorage
+        localStorage.setItem('user', JSON.stringify({
+          userId: data.userId,
+          username: data.username,
+          isLoggedIn: true
+        }));
+        
+        // Call the onLogin callback to update parent state
+        onLogin();
+        
+        // Redirect to dashboard after a short delay
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 1000);
       }
       else {
         setError(data.message || 'Invalid username or password.');
       }
     }
     catch (err) {
-      // this is to test if backend is connected or not
       console.error('Sign in error:', err);
       setError('Network error. Could not connect to the server.');
     }

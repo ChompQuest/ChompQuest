@@ -1,5 +1,5 @@
 import express from "express";
-import db from "../db/connection.js";
+import { getDb } from "../db/connection.js";
 import { ObjectId } from "mongodb";
 
 const router = express.Router();
@@ -15,6 +15,7 @@ router.post("/signup", async (req, res) => {
     }
 
     // Check if user already exists
+    const db = getDb();
     const existingUser = await db.collection("users").findOne({ 
       $or: [{ email }, { username }] 
     });
@@ -40,21 +41,26 @@ router.post("/signup", async (req, res) => {
       userId: result.insertedId 
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Error creating user" });
+    console.error("Signup error details:", err);
+    res.status(500).json({ message: "Error creating user", error: err.message });
   }
 });
 
 // User login endpoint
 router.post("/login", async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required" });
+    if (!username || !password) {
+      return res.status(400).json({ message: "Username and password are required" });
     }
 
-    const user = await db.collection("users").findOne({ email, password });
+    // Check if user exists by username only
+    const db = getDb();
+    const user = await db.collection("users").findOne({ 
+      username: username,
+      password: password 
+    });
 
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
