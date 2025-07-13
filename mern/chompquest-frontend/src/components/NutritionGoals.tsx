@@ -5,8 +5,6 @@ import {
   calculateRecommendedMetrics,
   feetInchesToCm,
   lbsToKg,
-  cmToFeetInches,
-  kgToLbs
 } from '../utils/nutritionCalculator';
 import './NutritionGoals.css';
 
@@ -56,64 +54,45 @@ const NutritionGoals: React.FC = () => {
     }
   }, [isBasicInfoComplete, showGoalsSection]);
 
-  // Calculate recommendations when basic info changes
+  // Calculate recommendations when basic info changes (for display only)
   useEffect(() => {
     if (isBasicInfoComplete) {
-      const heightCm = feetInchesToCm(heightFeet as number, heightInches as number);
-      const weightKg = lbsToKg(weightLbs as number);
-      const recommendations = calculateRecommendedMetrics(sex as 'male' | 'female', heightCm, weightKg, age as number, activityLevel as any);
-      
-      // Only auto-populate if goals are empty
-      if (calorieGoal === '') setCalorieGoal(recommendations.recommendedCalories);
-      if (waterIntakeGoal === '') setWaterIntakeGoal(recommendations.recommendedWater);
-      if (proteinGoal === '') setProteinGoal(recommendations.recommendedProtein);
-      if (carbsGoal === '') setCarbsGoal(recommendations.recommendedCarbs);
-      if (fatGoal === '') setFatGoal(recommendations.recommendedFat);
+      // Recommendations are calculated and stored for display purposes
+      // but don't auto-populate the form fields
     }
   }, [sex, heightFeet, heightInches, weightLbs, age, activityLevel]);
 
   // Fetch and populate current user goals if not a new user
   useEffect(() => {
-    if (!isNewUser) {
-      // TODO: Replace this with a real API call to fetch current user goals
-      // Example: fetch('/user/nutrition-goals').then(...)
-      // For now, use placeholder/mock data:
+    if (!isNewUser && userId) {
       const fetchUserGoals = async () => {
-        // PASS: Simulate API call
-        // await new Promise((resolve) => setTimeout(resolve, 500));
-        // Example mock data (replace with real data mapping):
-        const mockData = {
-          sex: 'male',
-          height: 175, // cm
-          weight: 70, // kg
-          age: 30,
-          activityLevel: 'moderately_active',
-          calorieGoal: 2200,
-          waterIntakeGoal: 2500,
-          proteinGoal: 120,
-          carbsGoal: 250,
-          fatGoal: 60,
-        };
-        // Convert height (cm) to feet/inches
-        const feet = Math.floor(mockData.height / 30.48);
-        const inches = Math.round((mockData.height / 2.54) % 12);
-        // Convert weight (kg) to lbs
-        const lbs = Math.round(mockData.weight * 2.20462);
-        setSex(mockData.sex as 'male' | 'female');
-        setHeightFeet(feet);
-        setHeightInches(inches);
-        setWeightLbs(lbs);
-        setAge(mockData.age);
-        setActivityLevel(mockData.activityLevel as any);
-        setCalorieGoal(mockData.calorieGoal);
-        setWaterIntakeGoal(mockData.waterIntakeGoal);
-        setProteinGoal(mockData.proteinGoal);
-        setCarbsGoal(mockData.carbsGoal);
-        setFatGoal(mockData.fatGoal);
+        try {
+          const response = await fetch(`http://localhost:5050/user/nutrition-goals?userId=${userId}`);
+          const data = await response.json();
+
+          if (response.ok && data.nutritionGoals) {
+            const goals = data.nutritionGoals;
+            
+            setSex(goals.sex);
+            setHeightFeet(goals.height);
+            setHeightInches(goals.heightInches);
+            setWeightLbs(goals.weight);
+            setAge(goals.age);
+            setActivityLevel(goals.activityLevel);
+            setCalorieGoal(goals.calorieGoal);
+            setWaterIntakeGoal(goals.waterIntakeGoal);
+            setProteinGoal(goals.proteinGoal);
+            setCarbsGoal(goals.carbsGoal);
+            setFatGoal(goals.fatGoal);
+          }
+        } catch (err) {
+          console.error('Error fetching nutrition goals:', err);
+          setError('Failed to load existing nutrition goals.');
+        }
       };
       fetchUserGoals();
     }
-  }, [isNewUser]);
+  }, [isNewUser, userId]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -142,13 +121,11 @@ const NutritionGoals: React.FC = () => {
     }
 
     try {
-      const heightCm = feetInchesToCm(heightFeet as number, heightInches as number);
-      const weightKg = lbsToKg(weightLbs as number);
-
       const nutritionGoals: NutritionGoalsType = {
         sex: sex as 'male' | 'female',
-        height: heightCm,
-        weight: weightKg,
+        height: heightFeet as number,
+        heightInches: heightInches as number,
+        weight: weightLbs as number,
         age: age as number,
         activityLevel: activityLevel as any,
         calorieGoal: calorieGoal as number,
@@ -158,13 +135,11 @@ const NutritionGoals: React.FC = () => {
         fatGoal: fatGoal as number
       };
 
-      // TODO: Replace with actual API endpoint
-      const endpoint = isNewUser 
-        ? `http://localhost:5050/user/${userId}/nutrition-goals` 
-        : 'http://localhost:5050/user/nutrition-goals';
+      const endpoint = `http://localhost:5050/user/nutrition-goals?userId=${userId}`;
+      const method = isNewUser ? 'POST' : 'PUT';
 
       const response = await fetch(endpoint, {
-        method: isNewUser ? 'POST' : 'PUT',
+        method: method,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -195,9 +170,14 @@ const NutritionGoals: React.FC = () => {
   const getRecommendations = () => {
     if (!isBasicInfoComplete) return null;
     
-    const heightCm = feetInchesToCm(heightFeet as number, heightInches as number);
-    const weightKg = lbsToKg(weightLbs as number);
-    return calculateRecommendedMetrics(sex as 'male' | 'female', heightCm, weightKg, age as number, activityLevel as any);
+    return calculateRecommendedMetrics(
+      sex as 'male' | 'female', 
+      heightFeet as number, 
+      heightInches as number, 
+      weightLbs as number, 
+      age as number, 
+      activityLevel as any
+    );
   };
 
   const recommendations = getRecommendations();
@@ -293,7 +273,6 @@ const NutritionGoals: React.FC = () => {
                   <option value="lightly_active">Lightly Active (light exercise 1-3 days/week)</option>
                   <option value="moderately_active">Moderately Active (moderate exercise 3-5 days/week)</option>
                   <option value="very_active">Very Active (hard exercise 6-7 days/week)</option>
-                  <option value="extremely_active">Extremely Active (very hard exercise, physical job)</option>
                 </select>
               </div>
             </div>
@@ -314,7 +293,7 @@ const NutritionGoals: React.FC = () => {
                     onChange={(e) => setCalorieGoal(e.target.value === '' ? '' : Number(e.target.value))}
                     min="1000"
                     max="5000"
-                    placeholder="2000"
+                    placeholder={recommendations ? recommendations.recommendedCalories.toString() : "2000"}
                     required
                   />
                 </div>
@@ -332,7 +311,7 @@ const NutritionGoals: React.FC = () => {
                     onChange={(e) => setWaterIntakeGoal(e.target.value === '' ? '' : Number(e.target.value))}
                     min="1000"
                     max="10000"
-                    placeholder="2500"
+                    placeholder={recommendations ? recommendations.recommendedWater.toString() : "2500"}
                     required
                   />
                 </div>
@@ -350,7 +329,7 @@ const NutritionGoals: React.FC = () => {
                     onChange={(e) => setProteinGoal(e.target.value === '' ? '' : Number(e.target.value))}
                     min="20"
                     max="300"
-                    placeholder="120"
+                    placeholder={recommendations ? recommendations.recommendedProtein.toString() : "120"}
                     required
                   />
                 </div>
@@ -368,7 +347,7 @@ const NutritionGoals: React.FC = () => {
                     onChange={(e) => setCarbsGoal(e.target.value === '' ? '' : Number(e.target.value))}
                     min="50"
                     max="600"
-                    placeholder="225"
+                    placeholder={recommendations ? recommendations.recommendedCarbs.toString() : "225"}
                     required
                   />
                 </div>
@@ -386,7 +365,7 @@ const NutritionGoals: React.FC = () => {
                     onChange={(e) => setFatGoal(e.target.value === '' ? '' : Number(e.target.value))}
                     min="20"
                     max="150"
-                    placeholder="56"
+                    placeholder={recommendations ? recommendations.recommendedFat.toString() : "56"}
                     required
                   />
                 </div>

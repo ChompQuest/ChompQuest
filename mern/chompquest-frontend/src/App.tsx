@@ -8,16 +8,20 @@ import Dashboard from './components/mainPage/Dashboard';
 import './App.css'; 
 function App() {
 
-  const [isLoggedIn, setIsLoggedIn] = useState(true); // set to false to show sign in page as default
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    // Check if user is already logged in from localStorage
+    const user = localStorage.getItem('user');
+    return user ? JSON.parse(user).isLoggedIn : false;
+  });
 
   const handleLogin = () => {
     setIsLoggedIn(true);
-    // once we have backend, we can check that here
   };
 
   const handleLogout = () => {
     setIsLoggedIn(false);
-    // here we need to clear any tokens
+    // Clear user data from localStorage
+    localStorage.removeItem('user');
   };
 
   // dummy test for nutrition tracker, will change when we have add meal
@@ -57,7 +61,7 @@ function App() {
           />
           <Route
             path="/signup"
-            element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <SignUp />}
+            element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <SignUp onLogin={handleLogin} />}
           />
 
           {/* only accessible if user is logged in, if not they are taken to sign in  */}
@@ -83,8 +87,19 @@ function App() {
             element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <Navigate to="/signin" replace />}
           />
 
+          {/* nutrition goals route - only accessible if logged in */}
+          <Route
+            path="/nutrition-goals"
+            element={
+              isLoggedIn ? (
+                <NutritionGoals />
+              ) : (
+                <Navigate to="/signin" replace />
+              )
+            }
+          />
+
           {/* catch all route for any issues */}
-          <Route path="/nutrition-goals" element={<NutritionGoals />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
