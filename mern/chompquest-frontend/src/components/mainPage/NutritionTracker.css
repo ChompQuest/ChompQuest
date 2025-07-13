@@ -15,9 +15,9 @@
 }
 
 .nutrition-rings-svg {
-  width: 250px; 
+  width: 250px;
   height: 250px;
-  margin-bottom: 10px; 
+  margin-bottom: 10px;
 }
 
 .ring-background,
@@ -26,14 +26,14 @@
 }
 
 .nutrition-details {
-  width: 100%; 
-  font-size: 0.8em; 
+  width: 100%;
+  font-size: 0.85em;
 }
 
 .nutrient-item {
   display: flex;
-  justify-content: space-between; 
-  margin-bottom: 4px; 
+  justify-content: space-between;
+  margin-bottom: 4px;
 }
 
 .nutrient-label {
@@ -41,5 +41,5 @@
 }
 
 .nutrient-value {
-  color: #555; 
+  color: #555;
 }
