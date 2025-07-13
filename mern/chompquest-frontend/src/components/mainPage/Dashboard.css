@@ -1,0 +1,72 @@
+.dashboard-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 20px; 
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; 
+}
+
+.dashboard-top-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  width: 100%;
+  justify-content: center;
+  align-items: flex-start;
+  margin-top: 30px;
+  margin-bottom: 30px;
+}
+
+.recent-meals-box {
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 25px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between; 
+  flex-grow: 1;
+  min-width: 280px;
+  min-height: 280px;
+  height: auto;
+}
+
+.recent-meals-box h2 {
+  color: #333;
+  margin-top: 0;
+  margin-bottom: auto;
+  font-size: 1.8em;
+}
+
+.add-meal-dashboard-button {
+  padding: 12px 25px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1.1em;
+  transition: background-color 0.2s ease;
+  width: 80%; 
+  margin-top: auto;
+}
+
+.add-meal-dashboard-button:hover {
+  background-color: #0056b3;
+}
+
+@media (max-width: 768px) {
+  .dashboard-top-section {
+    flex-direction: column;
+    align-items: center;
+  }
+  .nutrition-tracker-container,
+  .recent-meals-box {
+    width: 100%;
+    max-width: none;
+  }
+}

@@ -8,7 +8,7 @@ import Dashboard from './components/mainPage/Dashboard';
 import './App.css'; 
 function App() {
 
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // set to false to show sign in page as default
+  const [isLoggedIn, setIsLoggedIn] = useState(true); // set to false to show sign in page as default
 
   const handleLogin = () => {
     setIsLoggedIn(true);

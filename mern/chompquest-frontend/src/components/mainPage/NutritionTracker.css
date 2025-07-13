@@ -1,12 +1,12 @@
 .nutrition-tracker-container {
   position: fixed; 
-  top: 25px;       
-  right: 25px;     
-  width: 275px;    
-  height: 275px;    
+  top: 100px;       
+  right: 30px;     
+  width: 250px;    
+  height: 250px;    
   background-color: rgba(255, 255, 255, 0.9); 
   border-radius: 15px;
-  padding: 15px;
+  padding: 20px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); 
   display: flex;         
   flex-direction: column; 
@@ -27,7 +27,7 @@
 
 .nutrition-details {
   width: 100%; 
-  font-size: 0.85em; 
+  font-size: 0.8em; 
 }
 
 .nutrient-item {
