@@ -69,3 +69,6 @@ async function closeDatabase() {
 
 
 export { connectToDatabase, getDb, closeDatabase };
+
+// Default export for the database instance
+export default getDb;

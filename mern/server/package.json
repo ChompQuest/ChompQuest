@@ -5,7 +5,7 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "start": "node --env-file=config.env server"
+    "start": "node --env-file=.env server"
   },
   "keywords": [],
   "author": "",
