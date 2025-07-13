@@ -100,7 +100,7 @@
 }
 
 .add-meal-button {
-  background-color: #6c757d;
+  background-color: #28a745;
   color: white;
   padding: 12px 25px;
   font-size: 1.1em;
@@ -108,7 +108,7 @@
   width: 100%;
 }
 .add-meal-button:hover:not(:disabled) {
-  background-color: #5a6268;
+  background-color: #218838;
 }
 .add-meal-button:disabled {
   background-color: #cccccc;
