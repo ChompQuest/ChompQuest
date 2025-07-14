@@ -114,3 +114,76 @@
   background-color: #cccccc;
   cursor: not-allowed;
 }
+
+.custom-food-section {
+  width: 100%;
+  margin-top: 30px;
+  padding: 20px;
+  background-color: #f9f9f9; 
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.custom-food-heading {
+  margin-top: 0;
+  margin-bottom: 5px;
+  color: #555;
+  font-size: 1.2em;
+  text-align: center;
+}
+
+.manual-inputs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr; 
+  gap: 15px 20px;
+  width: 100%;
+}
+
+.manual-inputs-grid label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.95em;
+  color: #666;
+}
+
+.manual-inputs-grid input[type="text"],
+.manual-inputs-grid input[type="number"] {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  margin-top: 5px;
+  font-size: 1em;
+  width: 100%;
+  box-sizing: border-box; 
+}
+
+.add-custom-meal-button {
+  background-color: #28a745; 
+  color: white;
+  padding: 12px 25px;
+  font-size: 1.1em;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  width: 100%; 
+  align-self: center; 
+  margin-top: 15px;
+}
+
+.add-custom-meal-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.add-custom-meal-button:hover:not(:disabled) {
+  background-color: #218838;
+}
+
+.add-meal-button {
+  margin-top: 20px;
+}

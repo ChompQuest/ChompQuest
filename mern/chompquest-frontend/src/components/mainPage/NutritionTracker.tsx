@@ -6,6 +6,7 @@ export interface NutrientData {
   protein: number;
   carbs: number;
   fats: number;
+  name?: string; // not required field but can be used
 }
 
 interface NutritionTrackerProps {

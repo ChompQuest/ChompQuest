@@ -12,6 +12,13 @@ const AddMeal: React.FC<AddMealProps> = ({ onClose, onAddMeal }) => {
   const [searchResults, setSearchResults] = useState<string[]>([]);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
+  // custom food entry state
+  const [customFoodName, setCustomFoodName] = useState('');
+  const [customCalories, setCustomCalories] = useState<number | ''>(0);
+  const [customProtein, setCustomProtein] = useState<number | ''>(0);
+  const [customCarbs, setCustomCarbs] = useState<number | ''>(0);
+  const [customFats, setCustomFats] = useState<number | ''>(0);
+
   // I added this for testing, in real website, we'd have API
   const nutrientLookup: { [key: string]: NutrientData } = {
     'Apple (100g)': { calories: 52, protein: 0, carbs: 14, fats: 0 },
@@ -68,13 +75,36 @@ const AddMeal: React.FC<AddMealProps> = ({ onClose, onAddMeal }) => {
       carbs: totalCarbs,
       fats: totalFats,
     };
-
-    // passes contents to Dashboard
     onAddMeal(mealData);
 
     alert('Meal added!'); 
     setSelectedItems([]); 
     onClose();   
+  };
+
+  const handleAddCustomMeal = () => {
+    if (!customFoodName || customCalories === '' || customProtein === '' || customCarbs === '' || customFats === '') {
+      alert('Please fill in all custom food fields.');
+      return;
+    }
+
+    const customMealData: NutrientData = {
+      name: customFoodName,
+      calories: Number(customCalories),
+      protein: Number(customProtein),
+      carbs: Number(customCarbs),
+      fats: Number(customFats),
+    };
+
+    onAddMeal(customMealData);
+    alert(`${customFoodName} added!`);
+
+    setCustomFoodName('');
+    setCustomCalories(0);
+    setCustomProtein(0);
+    setCustomCarbs(0);
+    setCustomFats(0);
+    onClose();
   };
 
   return (
@@ -86,7 +116,7 @@ const AddMeal: React.FC<AddMealProps> = ({ onClose, onAddMeal }) => {
           className="search-input"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          onKeyPress={(e) => {
+          onKeyDown={(e) => {
             if (e.key === 'Enter') {
               handleSearch();
             }
@@ -126,6 +156,63 @@ const AddMeal: React.FC<AddMealProps> = ({ onClose, onAddMeal }) => {
       <button onClick={handleAddMeal} className="add-meal-button" disabled={selectedItems.length === 0}>
         Add Meal to Tracker
       </button>
+
+      <div className="custom-food-section">
+        <h3 className="custom-food-heading">
+          Didn't find it? Manually enter your food:
+        </h3>
+        <div id="manual-entry-form" className="manual-inputs-grid">
+          <label>
+            Food Name:
+            <input
+              type="text"
+              value={customFoodName}
+              onChange={(e) => setCustomFoodName(e.target.value)}
+              placeholder="e.g., Blueberry Pancakes"
+            />
+          </label>
+          <label>
+            Calories:
+            <input
+              type="number"
+              value={customCalories}
+              onChange={(e) => setCustomCalories(Number(e.target.value) || '')}
+              placeholder="e.g., 350"
+            />
+          </label>
+          <label>
+            Protein (g):
+            <input
+              type="number"
+              value={customProtein}
+              onChange={(e) => setCustomProtein(Number(e.target.value) || '')}
+              placeholder="e.g., 25"
+            />
+          </label>
+          <label>
+            Carbs (g):
+            <input
+              type="number"
+              value={customCarbs}
+              onChange={(e) => setCustomCarbs(Number(e.target.value) || '')}
+              placeholder="e.g., 40"
+            />
+          </label>
+          <label>
+            Fats (g):
+            <input
+              type="number"
+              value={customFats}
+              onChange={(e) => setCustomFats(Number(e.target.value) || '')}
+              placeholder="e.g., 15"
+            />
+          </label>
+        </div>
+        <button onClick={handleAddCustomMeal} className="add-custom-meal-button"
+                disabled={!customFoodName || customCalories === '' || customProtein === '' || customCarbs === '' || customFats === ''}>
+          Add Custom Meal
+        </button>
+      </div>
     </div>
   );
 };
