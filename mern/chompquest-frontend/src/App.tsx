@@ -91,11 +91,9 @@ function App() {
           <Route
             path="/nutrition-goals"
             element={
-              isLoggedIn ? (
-                <NutritionGoals />
-              ) : (
-                <Navigate to="/signin" replace />
-              )
+              isLoggedIn || localStorage.getItem('isNewUser') === 'true'
+                ? <NutritionGoals onLogin={handleLogin} />
+                : <Navigate to="/signin" replace />
             }
           />
 
