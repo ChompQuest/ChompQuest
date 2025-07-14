@@ -47,6 +47,10 @@ const Dashboard: React.FC<DashboardProps> = ({ dailyNutrition, dailyGoals, logMe
 
   return (
     <> 
+      {/* Absolutely fixed logo in the top left corner */}
+      <div className="dashboard-logo-fixed">
+        <img src="/214161846.jfif" alt="Logo" style={{ width: 72, height: 72, borderRadius: '12px' }} />
+      </div>
       <div className="dashboard-pfp-fixed" ref={dropdownRef}>
         <button
           className="profile-icon-btn"
@@ -77,10 +81,34 @@ const Dashboard: React.FC<DashboardProps> = ({ dailyNutrition, dailyGoals, logMe
       </div>
 
       <div className="dashboard-container">
-        <NutritionTracker
-          currentIntake={dailyNutrition}
-          dailyGoals={dailyGoals}
-        />
+        <div className="dashboard-tracker-outer">
+          <NutritionTracker
+            currentIntake={dailyNutrition}
+            dailyGoals={dailyGoals}
+          />
+        </div>
+        {/* Progress card in its own absolutely positioned div */}
+        <div className="progress-card-outer">
+          <div style={{
+            width: 290,
+            height: 275,
+            background: '#fff',
+            borderRadius: 16,
+            boxShadow: '0 2px 16px rgba(0,0,0,0.08)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontFamily: 'inherit',
+          }}>
+            <div style={{ fontSize: '1.35rem', fontWeight: 600, color: '#222', marginBottom: 18, width: '100%', textAlign: 'center' }}>Your Progress</div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 18 }}>
+              <img src="/chompquest_bronze.png" alt="Bronze Medal" style={{ width: 100, height: 100, borderRadius: '50%' }} />
+            </div>
+            <div style={{ fontWeight: 700, color: '#b08d57', marginBottom: 10, fontSize: '1.15rem', textAlign: 'center' }}>Bronze Chomper</div>
+            <div style={{ color: '#444', opacity: 0.95, fontSize: '1.05rem', textAlign: 'center' }}>0 day streak &bull; Level 1</div>
+          </div>
+        </div>
 
         <div className="recent-meals-box">
           <h2>Recent Meals</h2>
