@@ -1,0 +1,116 @@
+.search-section,
+.selected-items-section {
+  width: 100%;
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: #fff; 
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+}
+
+.search-section h3,
+.selected-items-section h3 {
+  color: #555;
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 1.2em;
+}
+
+.search-input {
+  width: calc(100% - 80px);
+  padding: 10px;
+  margin-right: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 1em;
+}
+
+.search-button,
+.add-item-button,
+.remove-item-button,
+.add-meal-button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: background-color 0.2s ease;
+}
+
+.search-button {
+  background-color: #007bff;
+  color: white;
+}
+.search-button:hover {
+  background-color: #0056b3;
+}
+
+.search-results ul,
+.selected-items-section ul {
+  list-style: none;
+  padding: 0;
+  margin-top: 10px;
+}
+
+.search-results li,
+.selected-items-section li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+  color: #444;
+}
+
+.search-results li:last-child,
+.selected-items-section li:last-child {
+  border-bottom: none;
+}
+
+.search-results li:hover {
+  background-color: #f9f9f9;
+  cursor: pointer;
+}
+
+.add-item-button {
+  background-color: #28a745;
+  color: white;
+  padding: 5px 10px;
+  font-size: 0.85em;
+}
+.add-item-button:hover {
+  background-color: #218838;
+}
+
+.remove-item-button {
+  background-color: #dc3545;
+  color: white;
+  padding: 5px 10px;
+  font-size: 0.85em;
+}
+.remove-item-button:hover {
+  background-color: #c82333;
+}
+
+.selected-items-section p {
+  color: #777;
+  text-align: center;
+  font-style: italic;
+}
+
+.add-meal-button {
+  background-color: #28a745;
+  color: white;
+  padding: 12px 25px;
+  font-size: 1.1em;
+  margin-top: 20px;
+  width: 100%;
+}
+.add-meal-button:hover:not(:disabled) {
+  background-color: #218838;
+}
+.add-meal-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
