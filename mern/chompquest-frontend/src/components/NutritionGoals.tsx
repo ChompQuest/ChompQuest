@@ -13,7 +13,11 @@ interface LocationState {
   userId?: string;
 }
 
-const NutritionGoals: React.FC = () => {
+interface NutritionGoalsProps {
+  onLogin: () => void;
+}
+
+const NutritionGoals: React.FC<NutritionGoalsProps> = ({ onLogin }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { isNewUser = false, userId } = (location.state as LocationState) || {};
@@ -152,9 +156,11 @@ const NutritionGoals: React.FC = () => {
         setSuccess('Nutrition goals saved successfully!');
         setTimeout(() => {
           if (isNewUser) {
-            navigate('/dashboard'); // Navigate to dashboard for new users
+            localStorage.removeItem('isNewUser');
+            onLogin();
+            navigate('/dashboard');
           } else {
-            navigate(-1); // Go back for existing users
+            navigate(-1);
           }
         }, 2000);
       } else {

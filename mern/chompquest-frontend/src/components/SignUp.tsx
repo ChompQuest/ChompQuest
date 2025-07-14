@@ -14,6 +14,7 @@ const SignUp: React.FC<SignUpProps> = ({ onLogin }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [redirecting, setRedirecting] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault(); // can't submit on default
@@ -56,9 +57,9 @@ const SignUp: React.FC<SignUpProps> = ({ onLogin }) => {
           username: username,
           isLoggedIn: true
         }));
+        localStorage.setItem('isNewUser', 'true'); // Set new user flag
         
-        // Call the onLogin callback to update parent state
-        onLogin();
+        setRedirecting(true); // Show loading
         
         // Redirect to nutrition goals page after successful signup
         setTimeout(() => {
@@ -80,6 +81,10 @@ const SignUp: React.FC<SignUpProps> = ({ onLogin }) => {
       setError('Network error. Could not connect to the server.');
     }
   };
+
+  if (redirecting) {
+    return <div style={{textAlign: 'center', marginTop: '100px'}}>Redirecting to set your nutrition goals...</div>;
+  }
 
   return (
     <div className="signup-container">
