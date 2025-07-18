@@ -1,10 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react'; 
-import { useNavigate } from 'react-router-dom'; 
+import React, { useState } from 'react'; 
 import NutritionTracker from './NutritionTracker';
 import type { NutrientData } from './NutritionTracker';
 import '../../App.css'; 
 import Modal from '../Modal';
 import AddMeal from '../AddMeal';
+import ProfilePicture from './ProfilePicture';
+import ProgressCard from './ProgressCard';
 import './Dashboard.css'; 
 
 interface DashboardProps {
@@ -25,62 +26,24 @@ const Dashboard: React.FC<DashboardProps> = ({ dailyNutrition, dailyGoals, logMe
     setShowAddMealModal(false);
   };
 
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
 
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setDropdownOpen(false);
-      }
-    }
-    if (dropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    } else {
-      document.removeEventListener('mousedown', handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [dropdownOpen]);
 
   return (
     <> 
-      <div className="dashboard-pfp-fixed" ref={dropdownRef}>
-        <button
-          className="profile-icon-btn"
-          onClick={() => setDropdownOpen((open) => !open)}
-          aria-label="Profile menu"
-        >
-          <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="16" cy="12" r="7" stroke="#333" strokeWidth="2" fill="#fff" />
-            <ellipse cx="16" cy="25" rx="10" ry="6" stroke="#333" strokeWidth="2" fill="#fff" />
-          </svg>
-        </button>
-        {dropdownOpen && (
-          <div className="profile-dropdown-menu">
-            <button
-              className="profile-dropdown-item"
-              onClick={() => { setDropdownOpen(false); navigate('/nutrition-goals'); }}
-            >
-              Update Nutrition Goals
-            </button>
-            <button
-              className="profile-dropdown-item logout"
-              onClick={() => { setDropdownOpen(false); onLogout(); }}
-            >
-              Log out
-            </button>
-          </div>
-        )}
+      {/* Absolutely fixed logo in the top left corner */}
+      <div className="dashboard-logo-fixed">
+        <img src="/214161846.jfif" alt="Logo" style={{ width: 72, height: 72, borderRadius: '12px' }} />
       </div>
+      <ProfilePicture onLogout={onLogout} />
 
       <div className="dashboard-container">
-        <NutritionTracker
-          currentIntake={dailyNutrition}
-          dailyGoals={dailyGoals}
-        />
+        <div className="dashboard-tracker-outer">
+          <NutritionTracker
+            currentIntake={dailyNutrition}
+            dailyGoals={dailyGoals}
+          />
+        </div>
+        <ProgressCard />
 
         <div className="recent-meals-box">
           <h2>Recent Meals</h2>
