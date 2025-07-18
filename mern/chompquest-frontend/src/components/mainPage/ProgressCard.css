@@ -1,7 +1,11 @@
+html {
+  font-size: 62.5%; 
+}
+
 .progress-card-container {
   position: fixed;
-  bottom: 32px;
-  right: 32px;
+  top: 400px;
+  right: 3.2rem;
   z-index: 1000;
 }
 

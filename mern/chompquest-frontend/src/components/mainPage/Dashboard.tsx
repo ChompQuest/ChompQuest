@@ -4,8 +4,8 @@ import type { NutrientData } from './NutritionTracker';
 import '../../App.css'; 
 import Modal from '../Modal';
 import AddMeal from '../AddMeal';
-import ProfilePicture from '../ProfilePicture';
-import ProgressCard from '../ProgressCard';
+import ProfilePicture from './ProfilePicture';
+import ProgressCard from './ProgressCard';
 import './Dashboard.css'; 
 
 interface DashboardProps {
