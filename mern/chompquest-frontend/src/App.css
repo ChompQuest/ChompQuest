@@ -1,8 +1,12 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 0;
-  text-align: center;
+html, body, #root, .App {
+  height: 100%;
+  margin: 0; 
+  padding: 0; 
+  box-sizing: border-box; 
+}
+
+html {
+  font-size: 62.5%; 
 }
 
 .App-container {
