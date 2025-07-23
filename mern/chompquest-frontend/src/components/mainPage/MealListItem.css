@@ -1,14 +1,10 @@
 .meal-list-item {
-    background-color: #f9f9f9; /* A light grey color, subtle but visible */
-    padding: 1rem 1rem; /* Some internal spacing */
-    display: flex; /* Helps align content inside */
-    justify-content: space-between; /* Pushes name to left, details to right */
-    align-items: center; /* Vertically centers content */
+    background-color: #f9f9f9; 
+    padding: 1rem 1rem; 
+    display: flex;
+    justify-content: space-between; 
+    align-items: center;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.meal-list-item:last-child {
-  border-bottom: none; /* No border for the last item in the list */
 }
 
 .meal-list-item-name {
@@ -31,5 +27,7 @@
 
 .meal-list-item-calories {
   font-weight: bold;
-  color: #007bff; 
+  color: #007bff;
+  min-width: 6.5rem;
+  text-align: right;
 }

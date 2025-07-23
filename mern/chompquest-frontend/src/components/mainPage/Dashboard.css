@@ -26,40 +26,6 @@
   align-items: center;
 }
 
-/* STILL WORKING ON THIS KEEP COMMENTS */
-.dashboard-container { 
-    display: flex; /* Make it a flex container */
-    flex-direction: column; /* Stack children vertically */
-    /* Add min-height to the dashboard-container if it's not already filling the screen */
-    min-height: calc(100vh - (some_header_height_if_any)); /* Example: if you have a fixed header, subtract its height */
-    /* If App.css sets height: 100vh on #root or .App, then this might not be strictly needed,
-       but it helps ensure the container itself has height to distribute. */
-    height: 100%; /* Ensure it takes full height of its parent */
-    /* Other existing dashboard-container styles */
-    gap: 2rem; /* Optional: adds space between children without needing margin-bottom on each */
-    padding: 2rem; /* Add some padding around the content */
-}
-
-.dashboard-tracker-outer {
-    /* Existing styles for the nutrition tracker */
-    /* If you don't want this to shrink, you might add flex-shrink: 0; */
-    flex-shrink: 0;
-}
-
-.progress-card { /* Assuming this is the class for ProgressCard's root div */
-    /* Existing styles for progress card */
-    flex-shrink: 0; /* Prevent it from shrinking if space is tight */
-}
-
-/* Target the RecentMealsBox component's root div directly */
-.recent-meals-box {
-    flex-grow: 1; /* This is the key: makes it expand to fill available space */
-    /* Ensure it has a min-height to always be visible even if empty */
-    min-height: 20rem; /* Adjust as needed, just to give it a starting minimum size */
-    overflow-y: auto; /* IMPORTANT: If content overflows, enable scrolling within the box */
-    /* Other existing styles for .recent-meals-box */
-}
-
 @media (max-width: 768px) {
 
   .dashboard-top-section { 

@@ -1,12 +1,6 @@
 import React from 'react';
 import './MealListItem.css';
-
-interface Meal {
-  id: string;
-  name: string;
-  date: string;
-  calories: number;
-}
+import type {Meal } from '../types';
 
 interface MealListItemProps {
   meal: Meal;

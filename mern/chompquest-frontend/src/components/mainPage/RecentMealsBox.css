@@ -1,13 +1,13 @@
 .recent-meals-box {
   position: fixed;
   top: 10rem;
-  right: 37rem;
+  right: 34rem;
   width: 85rem;
-  height: 25rem;
+  height: 53.4rem;
   background-color: rgba(255, 255, 255, 0.9);
   border-radius: 1.5rem;
   padding: 2rem; 
-  box-shadow: 0 0.4rem 1.5rem rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0.4rem 1.5rem rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
   z-index: 1000;
