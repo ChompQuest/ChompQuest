@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import './AddMeal.css';
-import type { NutrientData } from './mainPage/NutritionTracker';
+import type { NutrientData, LoggedMealData } from './types';
 
 interface AddMealProps {
-  onClose: () => void; 
-  onAddMeal: (mealData: NutrientData) => void; 
+  onClose: () => void;
+  onAddMeal: (mealData: LoggedMealData) => void;
 }
 
 const AddMeal: React.FC<AddMealProps> = ({ onClose, onAddMeal }) => {
@@ -12,14 +12,13 @@ const AddMeal: React.FC<AddMealProps> = ({ onClose, onAddMeal }) => {
   const [searchResults, setSearchResults] = useState<string[]>([]);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
-  // custom food entry state
   const [customFoodName, setCustomFoodName] = useState('');
   const [customCalories, setCustomCalories] = useState<number | ''>(0);
   const [customProtein, setCustomProtein] = useState<number | ''>(0);
   const [customCarbs, setCustomCarbs] = useState<number | ''>(0);
   const [customFats, setCustomFats] = useState<number | ''>(0);
 
-  // I added this for testing, in real website, we'd have API
+  // API needs to be integrated in here!!
   const nutrientLookup: { [key: string]: NutrientData } = {
     'Apple (100g)': { calories: 52, protein: 0, carbs: 14, fats: 0 },
     'Apple Juice (200ml)': { calories: 96, protein: 0, carbs: 24, fats: 0 },
@@ -45,8 +44,8 @@ const AddMeal: React.FC<AddMealProps> = ({ onClose, onAddMeal }) => {
       }
       return prevItems;
     });
-    setSearchTerm('');      
-    setSearchResults([]);  
+    setSearchTerm('');
+    setSearchResults([]);
   };
 
   const handleRemoveItem = (itemToRemove: string) => {
@@ -54,22 +53,31 @@ const AddMeal: React.FC<AddMealProps> = ({ onClose, onAddMeal }) => {
   };
 
   const handleAddMeal = () => {
+    if (selectedItems.length === 0) {
+      alert('Please select at least one item for the meal.');
+      return;
+    }
+
     let totalCalories = 0;
     let totalProtein = 0;
     let totalCarbs = 0;
     let totalFats = 0;
+    let mealNameParts: string[] = [];
 
     selectedItems.forEach(item => {
       const nutrients = nutrientLookup[item];
-      if (nutrients) { 
+      if (nutrients) {
         totalCalories += nutrients.calories;
         totalProtein += nutrients.protein;
         totalCarbs += nutrients.carbs;
         totalFats += nutrients.fats;
+        mealNameParts.push(item.split(' (')[0]);
       }
     });
 
-    const mealData: NutrientData = {
+    const mealData: LoggedMealData = {
+      name: mealNameParts.join(', ') || 'Mixed Meal',
+      date: new Date().toISOString(),
       calories: totalCalories,
       protein: totalProtein,
       carbs: totalCarbs,
@@ -77,9 +85,8 @@ const AddMeal: React.FC<AddMealProps> = ({ onClose, onAddMeal }) => {
     };
     onAddMeal(mealData);
 
-    alert('Meal added!'); 
-    setSelectedItems([]); 
-    onClose();   
+    setSelectedItems([]);
+    onClose();
   };
 
   const handleAddCustomMeal = () => {
@@ -88,8 +95,9 @@ const AddMeal: React.FC<AddMealProps> = ({ onClose, onAddMeal }) => {
       return;
     }
 
-    const customMealData: NutrientData = {
+    const customMealData: LoggedMealData = {
       name: customFoodName,
+      date: new Date().toISOString(),
       calories: Number(customCalories),
       protein: Number(customProtein),
       carbs: Number(customCarbs),
@@ -97,8 +105,6 @@ const AddMeal: React.FC<AddMealProps> = ({ onClose, onAddMeal }) => {
     };
 
     onAddMeal(customMealData);
-    alert(`${customFoodName} added!`);
-
     setCustomFoodName('');
     setCustomCalories(0);
     setCustomProtein(0);
