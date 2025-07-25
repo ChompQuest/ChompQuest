@@ -23,3 +23,5 @@ export interface Meal {
   carbs?: number;
   fats?: number;
 }
+
+export type SelectableNutrient = 'calories' | 'protein' | 'carbs' | 'fats' | 'water' ;
