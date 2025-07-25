@@ -1,0 +1,75 @@
+.add-custom-water-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1rem;
+}
+
+.form-label {
+  display: flex;
+  flex-direction: column;
+  font-size: 1.4rem;
+  color: #555;
+}
+
+.form-input {
+  padding: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 0.5rem;
+  font-size: 1.4rem;
+  margin-top: 0.5rem;
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  outline: none;
+}
+
+.error-message {
+  color: #dc3545;
+  font-size: 1.2rem;
+  margin-top: -1rem;
+  text-align: center;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.submit-button,
+.cancel-button {
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 1.4rem;
+  transition: background-color 0.2s ease;
+}
+
+.submit-button {
+  background-color: #28a745;
+  color: white;
+}
+
+.submit-button:hover:not(:disabled) {
+  background-color: #218838;
+}
+
+.submit-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.cancel-button {
+  background-color: #6c757d;
+  color: white;
+}
+
+.cancel-button:hover {
+  background-color: #5a6268;
+}
