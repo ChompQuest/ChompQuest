@@ -10,7 +10,7 @@ Authorization: Bearer <your-jwt-token>
 
 ## User Endpoints
 
-### POST /api/user/signup
+### POST /user/signup
 
 Create a new user account with game stats.
 
@@ -33,7 +33,7 @@ Create a new user account with game stats.
 }
 ```
 
-### POST /api/user/login
+### POST /user/login
 
 Authenticate user and receive JWT token with game stats.
 
@@ -67,7 +67,7 @@ Authenticate user and receive JWT token with game stats.
 
 ## Game Stats Endpoints (Protected)
 
-### GET /api/user/game-stats
+### GET /user/game-stats
 
 Get the current user's game stats.
 
@@ -89,7 +89,7 @@ Authorization: Bearer <jwt-token>
 }
 ```
 
-### PUT /api/user/game-stats
+### PUT /user/game-stats
 
 Update the current user's game stats.
 

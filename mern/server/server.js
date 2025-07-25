@@ -9,8 +9,8 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use("/api/user", users);
-app.use("/api/record", records);
+app.use("/user", users);
+app.use("/record", records);
 
 // start the Express server
 
