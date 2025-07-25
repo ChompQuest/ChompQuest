@@ -1,0 +1,24 @@
+.add-water-button-main {
+  padding: 1.5rem 3.0rem;
+  background-color: #17a2b8; 
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 1.4rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: absolute; 
+  top: 12rem;
+  right: 50rem;
+  z-index: 1001;
+}
+
+.add-water-button-main:hover {
+  background-color: #138496;
+  transform: translateY(-1px);
+}
+
+.add-water-button-main:active {
+  transform: translateY(0);
+}

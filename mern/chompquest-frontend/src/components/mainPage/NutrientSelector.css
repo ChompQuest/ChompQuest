@@ -1,0 +1,60 @@
+.nutrient-selector-container {
+  position: fixed; 
+  top: 1.25rem;       
+  right: 24rem;     
+  width: 2.5rem;    
+  height: 3.5rem;    
+  border-radius: 15px;
+  padding: 20px;
+  display: flex;         
+  flex-direction: column; 
+  align-items: center;
+  z-index: 1000;
+}
+
+.nutrient-dropdown {
+    padding: 0.8rem 2.5rem 0.8rem 1.5rem; 
+    border: 1px solid #23a5f5; 
+    border-radius: 1rem;
+    background-color: #007bff; 
+    font-style: bold;
+    color: #ffffff;
+    cursor: pointer;
+    font-size: 1.5rem;
+    line-height: 1.2;
+    outline: none;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
+
+    appearance: none;       
+    -webkit-appearance: none; 
+    -moz-appearance: none;    
+    
+    /* downward arrow button for drop down  */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.8rem center; 
+    background-size: 1.2rem; 
+
+    transition: all 0.2s ease;
+}
+
+.nutrient-dropdown:hover {
+    border-color: #a0a0a0;
+    background-color: #0056b3;
+}
+
+.nutrient-dropdown:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.nutrient-dropdown option {
+    padding: 0.5rem 1.5rem;
+    color: #333;
+    background-color: #ffffff;
+}
+
+.nutrient-dropdown {
+  -ms-overflow-style: none;
+  scrollbar-width: none; 
+}
