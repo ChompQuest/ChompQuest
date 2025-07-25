@@ -1,0 +1,33 @@
+.meal-list-item {
+    background-color: #f9f9f9; 
+    padding: 1rem 1rem; 
+    display: flex;
+    justify-content: space-between; 
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.meal-list-item-name {
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: #333;
+  flex-grow: 1; 
+  margin-right: 1rem; 
+  white-space: nowrap; 
+  overflow: hidden; 
+  text-overflow: ellipsis;
+}
+
+.meal-list-item-details {
+  display: flex;
+  gap: 1.5rem; 
+  color: #555;
+  font-size: 1.2rem; 
+}
+
+.meal-list-item-calories {
+  font-weight: bold;
+  color: #007bff;
+  min-width: 6.5rem;
+  text-align: right;
+}

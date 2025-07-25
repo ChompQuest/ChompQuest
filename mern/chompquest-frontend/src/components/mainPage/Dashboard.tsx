@@ -1,22 +1,25 @@
-import React, { useState } from 'react'; 
+import React, { useState} from 'react';
 import NutritionTracker from './NutritionTracker';
-import type { NutrientData } from './NutritionTracker';
-import '../../App.css'; 
+import type { NutrientData, LoggedMealData, Meal } from '../types';
+import '../../App.css';
 import Modal from '../Modal';
 import AddMeal from '../AddMeal';
 import ProfilePicture from './ProfilePicture';
 import ProgressCard from './ProgressCard';
-import './Dashboard.css'; 
+import RecentMealsBox from './RecentMealsBox';
+import './Dashboard.css';
 
 interface DashboardProps {
   dailyNutrition: NutrientData;
   dailyGoals: NutrientData;
-  logMeal: (newIntake: NutrientData) => void;
+  logMeal: (newIntake: LoggedMealData) => void;
   onLogout: () => void;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ dailyNutrition, dailyGoals, logMeal, onLogout }) => {
   const [showAddMealModal, setShowAddMealModal] = useState(false);
+  const [recentMeals, setRecentMeals] = useState<Meal[]>([]);
+
 
   const handleOpenAddMealModal = () => {
     setShowAddMealModal(true);
@@ -26,13 +29,24 @@ const Dashboard: React.FC<DashboardProps> = ({ dailyNutrition, dailyGoals, logMe
     setShowAddMealModal(false);
   };
 
+  const handleLogMealAndRefreshRecent = (newLoggedMealData: LoggedMealData) => {
+    logMeal(newLoggedMealData);
+    const newMeal: Meal = {
+      ...newLoggedMealData, 
+      id: `temp-${Date.now()}`,
+    };
 
+    setRecentMeals(prevMeals => {
+      const updatedMeals = [newMeal, ...prevMeals];
+      return updatedMeals.slice(0, 10);
+    });
+    handleCloseAddMealModal();
+  };
 
   return (
-    <> 
-      {/* Absolutely fixed logo in the top left corner */}
+    <div className="dashboard-main-content"> 
       <div className="dashboard-logo-fixed">
-        <img src="/214161846.jfif" alt="Logo" style={{ width: 72, height: 72, borderRadius: '12px' }} />
+        <img src="/214161846.jfif" alt="Logo" style={{ width: '7.2rem', height: '7.2rem', borderRadius: '1.2rem' }} />
       </div>
       <ProfilePicture onLogout={onLogout} />
 
@@ -45,23 +59,18 @@ const Dashboard: React.FC<DashboardProps> = ({ dailyNutrition, dailyGoals, logMe
         </div>
         <ProgressCard />
 
-        <div className="recent-meals-box">
-          <h2>Recent Meals</h2>
-          <button
-            onClick={handleOpenAddMealModal}
-            className="add-meal-dashboard-button"
-          >
-            Add New Meal
-          </button>
-        </div>
+        <RecentMealsBox
+          meals={recentMeals}
+          onAddMealClick={handleOpenAddMealModal}
+        />
 
         {showAddMealModal && (
           <Modal onClose={handleCloseAddMealModal} title="Add New Meal">
-            <AddMeal onClose={handleCloseAddMealModal} onAddMeal={logMeal} />
+            <AddMeal onClose={handleCloseAddMealModal} onAddMeal={handleLogMealAndRefreshRecent} />
           </Modal>
         )}
       </div>
-    </>
+    </div>
   );
 };
 
