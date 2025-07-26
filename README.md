@@ -40,33 +40,38 @@ A gamified goal-tracking application that helps you level up your life by turnin
    ```
 
 3. **Configure environment variables**
-   Create `mern/server/config.env` with your MongoDB Atlas URI:
+   Create `mern/server/.env` with your MongoDB Atlas URI:
 
    ```
    ATLAS_URI=mongodb+srv://<username>:<password>@<your-cluster>.mongodb.net/
    PORT=5050
    ```
 
-4. **Start the backend server**
+   Additionally, add your JWT secret toke
+   ```
+   JWT_SECRET=TOKEN
+   ```
+
+5. **Start the backend server**
 
    ```bash
    npm start
    ```
 
-5. **Set up the frontend**
+6. **Set up the frontend**
 
    ```bash
    cd ../chompquest-frontend
    npm install
    ```
 
-6. **Start the frontend development server**
+7. **Start the frontend development server**
 
    ```bash
    npm run dev
    ```
 
-7. **Open your browser**
+8. **Open your browser**
    Navigate to `http://localhost:5173` to see ChompQuest in action!
 
 ## API Endpoints
