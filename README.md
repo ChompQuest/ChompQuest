@@ -47,7 +47,7 @@ A gamified goal-tracking application that helps you level up your life by turnin
    PORT=5050
    ```
 
-   Additionally, add your JWT secret toke
+   Additionally, add your JWT secret token
    ```
    JWT_SECRET=TOKEN
    ```
