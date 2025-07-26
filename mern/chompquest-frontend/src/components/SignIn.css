@@ -83,6 +83,22 @@ html, body {
     background-color: #218838; 
 }
 
+.signin-container button:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.signin-container button.loading {
+  background-color: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.signin-container button.loading:hover {
+  background-color: #6c757d;
+}
+
 .error-message {
     color: #dc3545; 
     background-color: #f8d7da; 
