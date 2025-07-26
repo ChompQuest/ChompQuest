@@ -71,7 +71,7 @@ const NutritionGoals: React.FC<NutritionGoalsProps> = ({ onLogin }) => {
     if (!isNewUser && userId) {
       const fetchUserGoals = async () => {
         try {
-          const response = await fetch(`http://localhost:5050/user/nutrition-goals?userId=${userId}`);
+          const response = await fetch(`http://localhost:5050/user/nutrition-goals-by-id?userId=${userId}`);
           const data = await response.json();
 
           if (response.ok && data.nutritionGoals) {
@@ -139,7 +139,9 @@ const NutritionGoals: React.FC<NutritionGoalsProps> = ({ onLogin }) => {
         fatGoal: fatGoal as number
       };
 
-      const endpoint = `http://localhost:5050/user/nutrition-goals?userId=${userId}`;
+      const endpoint = isNewUser 
+        ? `http://localhost:5050/user/nutrition-goals-by-id?userId=${userId}`
+        : `http://localhost:5050/user/nutrition-goals`;
       const method = isNewUser ? 'POST' : 'PUT';
 
       const response = await fetch(endpoint, {
