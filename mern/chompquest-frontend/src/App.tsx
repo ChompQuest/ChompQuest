@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import SignIn from './components/SignIn';
 import SignUp from './components/SignUp';
 import NutritionGoals from './components/NutritionGoals';
+import SetNutritionGoals from './components/SetNutritionGoals';
 import Dashboard from './components/mainPage/Dashboard';
 
 import type { NutrientData, LoggedMealData } from './components/types';
@@ -20,7 +21,12 @@ interface GameStats {
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
     const user = localStorage.getItem('user');
-    return user ? JSON.parse(user).isLoggedIn : false;
+    if (user) {
+      const userData = JSON.parse(user);
+      // User is only considered "fully logged in" if they completed nutrition goals
+      return userData.isLoggedIn === true;
+    }
+    return false;
   });
 
   const [gameStats, setGameStats] = useState<GameStats>(() => {
@@ -173,11 +179,17 @@ function App() {
             element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <Navigate to="/signin" replace />}
           />
 
-          {/* nutrition goals route - only accessible if logged in */}
+          {/* set nutrition goals route - for new users after signup */}
+          <Route
+            path="/set-nutrition-goals"
+            element={<SetNutritionGoals onLogin={handleLogin} />}
+          />
+          
+          {/* update nutrition goals route - for existing logged-in users */}
           <Route
             path="/nutrition-goals"
             element={
-              isLoggedIn || localStorage.getItem('isNewUser') === 'true'
+              isLoggedIn
                 ? <NutritionGoals onLogin={handleLogin} />
                 : <Navigate to="/signin" replace />
             }

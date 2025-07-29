@@ -13,24 +13,24 @@ interface LocationState {
   userId?: string;
 }
 
-interface NutritionGoalsProps {
+interface SetNutritionGoalsProps {
   onLogin: () => void;
 }
 
-const NutritionGoals: React.FC<NutritionGoalsProps> = ({ onLogin }) => {
+const SetNutritionGoals: React.FC<SetNutritionGoalsProps> = ({ onLogin }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isNewUser = false, userId } = (location.state as LocationState) || {};
+  const { userId } = (location.state as LocationState) || {};
 
-  // Form state
+  // Form state - matching NutritionGoals exactly
   const [sex, setSex] = useState<'male' | 'female' | ''>('');
   const [heightFeet, setHeightFeet] = useState<number | ''>('');
   const [heightInches, setHeightInches] = useState<number | ''>('');
   const [weightLbs, setWeightLbs] = useState<number | ''>('');
   const [age, setAge] = useState<number | ''>('');
-  const [activityLevel, setActivityLevel] = useState<'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active' | ''>('');
-  
-  // Goals state
+  const [activityLevel, setActivityLevel] = useState<string>('');
+
+  // Goals state - matching NutritionGoals exactly
   const [calorieGoal, setCalorieGoal] = useState<number | ''>('');
   const [waterIntakeGoal, setWaterIntakeGoal] = useState<number | ''>('');
   const [proteinGoal, setProteinGoal] = useState<number | ''>('');
@@ -58,131 +58,6 @@ const NutritionGoals: React.FC<NutritionGoalsProps> = ({ onLogin }) => {
     }
   }, [isBasicInfoComplete, showGoalsSection]);
 
-  // Calculate recommendations when basic info changes (for display only)
-  useEffect(() => {
-    if (isBasicInfoComplete) {
-      // Recommendations are calculated and stored for display purposes
-      // but don't auto-populate the form fields
-    }
-  }, [sex, heightFeet, heightInches, weightLbs, age, activityLevel]);
-
-  // Fetch and populate current user goals if not a new user
-  useEffect(() => {
-    if (!isNewUser && userId) {
-      const fetchUserGoals = async () => {
-        try {
-          const response = await fetch(`http://localhost:5050/user/nutrition-goals-by-id?userId=${userId}`);
-          const data = await response.json();
-
-          if (response.ok && data.nutritionGoals) {
-            const goals = data.nutritionGoals;
-            
-            setSex(goals.sex);
-            setHeightFeet(goals.height);
-            setHeightInches(goals.heightInches);
-            setWeightLbs(goals.weight);
-            setAge(goals.age);
-            setActivityLevel(goals.activityLevel);
-            setCalorieGoal(goals.calorieGoal);
-            setWaterIntakeGoal(goals.waterIntakeGoal);
-            setProteinGoal(goals.proteinGoal);
-            setCarbsGoal(goals.carbsGoal);
-            setFatGoal(goals.fatGoal);
-          }
-        } catch (err) {
-          console.error('Error fetching nutrition goals:', err);
-          setError('Failed to load existing nutrition goals.');
-        }
-      };
-      fetchUserGoals();
-    }
-  }, [isNewUser, userId]);
-
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setError(null);
-    setSuccess(null);
-
-    if (!canSubmit) {
-      setError('Please fill in all required fields.');
-      return;
-    }
-
-    // Validation
-    if (heightFeet < 3 || heightFeet > 8 || heightInches < 0 || heightInches > 11) {
-      setError('Please enter a valid height.');
-      return;
-    }
-
-    if (weightLbs < 50 || weightLbs > 500) {
-      setError('Please enter a valid weight.');
-      return;
-    }
-
-    if (age < 13 || age > 120) {
-      setError('Please enter a valid age.');
-      return;
-    }
-
-    try {
-      const nutritionGoals: NutritionGoalsType = {
-        sex: sex as 'male' | 'female',
-        height: heightFeet as number,
-        heightInches: heightInches as number,
-        weight: weightLbs as number,
-        age: age as number,
-        activityLevel: activityLevel as any,
-        calorieGoal: calorieGoal as number,
-        waterIntakeGoal: waterIntakeGoal as number,
-        proteinGoal: proteinGoal as number,
-        carbsGoal: carbsGoal as number,
-        fatGoal: fatGoal as number
-      };
-
-      const endpoint = `http://localhost:5050/user/nutrition-goals`;
-      const method = 'PUT';
-
-      const response = await fetch(endpoint, {
-        method: method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(nutritionGoals),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setSuccess('Nutrition goals saved successfully!');
-        setTimeout(() => {
-          if (isNewUser) {
-            // Update user data to show they're fully logged in
-            const userData = localStorage.getItem('user');
-            if (userData) {
-              const user = JSON.parse(userData);
-              const updatedUser = {
-                ...user,
-                isLoggedIn: true,
-                needsNutritionGoals: false
-              };
-              localStorage.setItem('user', JSON.stringify(updatedUser));
-            }
-            
-            onLogin();
-            navigate('/dashboard');
-          } else {
-            navigate(-1);
-          }
-        }, 2000);
-      } else {
-        setError(data.message || 'Failed to save nutrition goals. Please try again.');
-      }
-    } catch (err) {
-      console.error('Nutrition goals error:', err);
-      setError('Network error. Could not connect to the server.');
-    }
-  };
-
   // Calculate current recommendations for display (only if basic info is complete)
   const getRecommendations = () => {
     if (!isBasicInfoComplete) return null;
@@ -199,10 +74,79 @@ const NutritionGoals: React.FC<NutritionGoalsProps> = ({ onLogin }) => {
 
   const recommendations = getRecommendations();
 
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setError(null);
+    setSuccess(null);
+
+    if (!canSubmit) {
+      setError('Please fill out all required fields.');
+      return;
+    }
+
+    try {
+      const nutritionGoals = {
+        sex,
+        heightFeet: Number(heightFeet),
+        heightInches: Number(heightInches),
+        weightLbs: Number(weightLbs),
+        age: Number(age),
+        activityLevel,
+        goals: {
+          calories: Number(calorieGoal),
+          protein: Number(proteinGoal),
+          carbs: Number(carbsGoal),
+          fats: Number(fatGoal),
+          water: Number(waterIntakeGoal)
+        }
+      };
+
+      const endpoint = userId 
+        ? `http://localhost:5050/user/nutrition-goals-by-id?userId=${userId}`
+        : 'http://localhost:5050/user/nutrition-goals';
+      const method = 'POST';
+
+      const response = await fetch(endpoint, {
+        method: method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(nutritionGoals),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setSuccess('Nutrition goals saved successfully!');
+        setTimeout(() => {
+          // Update user data to show they're fully logged in
+          const userData = localStorage.getItem('user');
+          if (userData) {
+            const user = JSON.parse(userData);
+            const updatedUser = {
+              ...user,
+              isLoggedIn: true,
+              needsNutritionGoals: false
+            };
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+          }
+          
+          onLogin();
+          navigate('/dashboard');
+        }, 2000);
+      } else {
+        setError(data.message || 'Failed to save nutrition goals. Please try again.');
+      }
+    } catch (err) {
+      console.error('Nutrition goals error:', err);
+      setError('Network error. Could not connect to the server.');
+    }
+  };
+
   return (
     <div className="nutrition-goals-outer">
       <div className="nutrition-goals-title">
-        <h2>Update Nutrition Goals</h2>
+        <h2>Set Your Nutrition Goals</h2>
       </div>
       <div className="nutrition-goals-card">
         {error && <div className="error-message">{error}</div>}
@@ -390,7 +334,7 @@ const NutritionGoals: React.FC<NutritionGoalsProps> = ({ onLogin }) => {
             )}
           </div>
           <button type="submit" disabled={!canSubmit} className={!canSubmit ? 'disabled' : ''}>
-                            Update Goals
+            Save Goals & Continue
           </button>
         </form>
       </div>
@@ -398,4 +342,4 @@ const NutritionGoals: React.FC<NutritionGoalsProps> = ({ onLogin }) => {
   );
 };
 
-export default NutritionGoals; 
+export default SetNutritionGoals; 
