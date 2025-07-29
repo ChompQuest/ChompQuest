@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import NutritionTracker from './NutritionTracker';
 import type { NutrientData, LoggedMealData, Meal, SelectableNutrient } from '../types';
 import '../../App.css';
@@ -13,6 +12,12 @@ import NutrientSelector from './NutrientSelector';
 import WaterInput from './AddWaterButton'; 
 import './Dashboard.css';
 
+interface GameStats {
+  dailyStreak: number;
+  pointTotal: number;
+  currentRank: number;
+}
+
 interface DashboardProps {
   dailyNutrition: NutrientData;
   dailyGoals: NutrientData;
@@ -20,7 +25,9 @@ interface DashboardProps {
   onLogout: () => void;
   currentWaterIntake: number;
   waterGoal: number;
-  onOpenAddWaterModal: () => void; 
+  onOpenAddWaterModal: () => void;
+  gameStats: GameStats;
+  updateGameStats: (newStats: GameStats) => void;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({
@@ -31,11 +38,55 @@ const Dashboard: React.FC<DashboardProps> = ({
   currentWaterIntake,
   waterGoal,
   onOpenAddWaterModal,
+  gameStats,
+  updateGameStats,
 }) => {
-  const navigate = useNavigate();
   const [showAddMealModal, setShowAddMealModal] = useState(false);
   const [recentMeals, setRecentMeals] = useState<Meal[]>([]);
   const [selectedNutrientForProgressBar, setSelectedNutrientForProgressBar] = useState<SelectableNutrient>('calories');
+  const [isLoadingGameStats, setIsLoadingGameStats] = useState(false); // Start with false since data should be preloaded
+
+  // Only fetch game stats if we don't have any data
+  useEffect(() => {
+    const fetchGameStats = async () => {
+      // If we already have valid game stats, don't fetch
+      if (gameStats.dailyStreak > 0 || gameStats.pointTotal > 0 || gameStats.currentRank > 1) {
+        return;
+      }
+
+      setIsLoadingGameStats(true);
+
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          console.error('No JWT token found');
+          setIsLoadingGameStats(false);
+          return;
+        }
+
+        const response = await fetch('http://localhost:5050/user/game-stats', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          updateGameStats(data.game_stats);
+        } else {
+          console.error('Failed to fetch game stats:', response.statusText);
+        }
+      } catch (error) {
+        console.error('Error fetching game stats:', error);
+      }
+      
+      setIsLoadingGameStats(false);
+    };
+
+    fetchGameStats();
+  }, [gameStats, updateGameStats]);
+
   const handleOpenAddMealModal = () => {
     setShowAddMealModal(true);
   };
@@ -157,7 +208,12 @@ const Dashboard: React.FC<DashboardProps> = ({
             waterGoal={waterGoal}
           />
         </div>
-        <ProgressCard />
+        <ProgressCard 
+          dailyStreak={isLoadingGameStats ? 0 : gameStats.dailyStreak}
+          currentRank={isLoadingGameStats ? 1 : gameStats.currentRank}
+          pointTotal={isLoadingGameStats ? 0 : gameStats.pointTotal}
+          isLoading={isLoadingGameStats}
+        />
 
         <RecentMealsBox
           meals={recentMeals}

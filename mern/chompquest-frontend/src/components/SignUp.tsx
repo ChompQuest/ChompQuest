@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './SignUp.css'; // Make sure this CSS file exists and is linked
+import './SignUp.css'; 
 
 interface SignUpProps {
-  onLogin: () => void;
+  onSignup: () => void;
 }
 
-const SignUp: React.FC<SignUpProps> = ({ onLogin }) => {
+const SignUp: React.FC<SignUpProps> = ({ onSignup }) => {
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -14,25 +14,28 @@ const SignUp: React.FC<SignUpProps> = ({ onLogin }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [redirecting, setRedirecting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault(); // can't submit on default
+    event.preventDefault(); 
 
-    // clears any prev errors
     setError(null); 
     setSuccess(null);
+    setIsLoading(true);
 
     if (!username || !email || !password || !confirmPassword) {
       setError('All fields are required.');
+      setIsLoading(false);
       return;
     }
     if (password !== confirmPassword) {
       setError('Passwords do not match.');
+      setIsLoading(false);
       return;
     }
     if (password.length < 6) {
       setError('Password must be at least 6 characters long.');
+      setIsLoading(false);
       return;
     }
 
@@ -49,7 +52,7 @@ const SignUp: React.FC<SignUpProps> = ({ onLogin }) => {
       const data = await response.json(); 
 
       if (response.ok) {
-        setSuccess('Account created successfully! Redirecting to set up your nutrition goals...');
+        setSuccess('Account created successfully! Setting up your profile...');
         
         // Store user data in localStorage
         localStorage.setItem('user', JSON.stringify({
@@ -59,9 +62,19 @@ const SignUp: React.FC<SignUpProps> = ({ onLogin }) => {
         }));
         localStorage.setItem('isNewUser', 'true'); // Set new user flag
         
-        setRedirecting(true); // Show loading
+        // Store JWT token for API calls (if provided)
+        if (data.token) {
+          localStorage.setItem('token', data.token);
+        }
         
-        // Redirect to nutrition goals page after successful signup
+        // Store game stats in localStorage (if provided)
+        if (data.game_stats) {
+          localStorage.setItem('gameStats', JSON.stringify(data.game_stats));
+        }
+        
+        // Call the onLogin callback to update parent state
+        onSignup();
+        
         setTimeout(() => {
           navigate('/nutrition-goals', { 
             state: { 
@@ -69,26 +82,24 @@ const SignUp: React.FC<SignUpProps> = ({ onLogin }) => {
               userId: data.userId 
             } 
           });
-        }, 2000);
+        }, 3000); // 3 seconds delay for signup
       } 
       else {
         setError(data.message || 'Failed to create account. Please try again.');
+        setIsLoading(false);
       }
     } 
     catch (err) {
       // this is to test if backend is connected or not
       console.error('Signup error:', err);
       setError('Network error. Could not connect to the server.');
+      setIsLoading(false);
     }
   };
 
-  if (redirecting) {
-    return <div style={{textAlign: 'center', marginTop: '100px'}}>Redirecting to set your nutrition goals...</div>;
-  }
-
   return (
     <div className="signup-container">
-      <h3>Welcome to ChompQuest! <br /> This site was built to help you keep track of your goals while making it fun! Let's play</h3>
+      <h3>Welcome to ChompQuest! <br /> This site was built to help you keep track of your goals while making it fun!<br />Let's play</h3>
       <h2>Create an Account</h2>
       {error && <div className="error-message">{error}</div>}
       {success && <div className="success-message">{success}</div>}
@@ -133,7 +144,13 @@ const SignUp: React.FC<SignUpProps> = ({ onLogin }) => {
             required
           />
         </div>
-        <button type="submit">Sign Up</button>
+        <button 
+          type="submit"
+          disabled={isLoading}
+          className={isLoading ? 'loading' : ''}
+        >
+          {isLoading ? 'Creating Account...' : 'Sign Up'}
+        </button>
       </form>
       <div className="signin-link">
         <p>Already have an account? <a href="/signin">Sign In</a></p>

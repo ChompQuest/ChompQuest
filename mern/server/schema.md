@@ -19,7 +19,7 @@
     heightInches: Number,           // Height in inches
     weight: Number,                 // Weight in pounds
     age: Number,                    // Age in years
-    activityLevel: 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active' | 'extremely_active',
+    activityLevel: 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active' |
     calorieGoal: Number,            // Daily calorie goal
     waterIntakeGoal: Number,        // Daily water intake goal in ml
     proteinGoal: Number,            // Daily protein goal in grams
@@ -51,4 +51,3 @@
 - `lightly_active`: Light exercise 1-3 days/week
 - `moderately_active`: Moderate exercise 3-5 days/week
 - `very_active`: Hard exercise 6-7 days/week
-- `extremely_active`: Very hard exercise, physical job
