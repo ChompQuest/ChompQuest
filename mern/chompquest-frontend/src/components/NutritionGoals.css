@@ -14,6 +14,10 @@ html, body {
     flex-direction: column;
     align-items: center;
     box-sizing: border-box;
+    padding: 0 2rem;
+    padding-top: 5rem;
+    padding-left: 47rem;
+    padding-right: 2rem;
 }
 
 .dashboard-logo-fixed {
@@ -64,13 +68,14 @@ html, body {
     background: #fff;
     border-radius: 8px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.10);
-    max-width: 900px;
+    max-width: 1200px;
     width: 100%;
     margin: 0 auto;
-    padding: 20px 20px 56px 20px;
+    padding: 40px 40px 80px 40px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    box-sizing: border-box;
 }
 
 .nutrition-goals-card form {
@@ -83,16 +88,32 @@ html, body {
 .nutrition-goals-halves {
     display: flex;
     flex-direction: row;
-    gap: 28px;
+    gap: 40px;
     width: 100%;
     justify-content: center;
     align-items: flex-start;
+    transition: all 0.3s ease;
+}
+
+.nutrition-goals-halves.single-column {
+    justify-content: center;
+    align-items: center;
+}
+
+.nutrition-goals-halves.single-column .nutrition-goals-half {
+    max-width: 450px;
+    width: 450px;
+    flex: none;
+}
+
+.nutrition-goals-halves.two-columns {
+    justify-content: space-between;
 }
 
 .nutrition-goals-half {
     flex: 1 1 0;
     min-width: 0;
-    max-width: 340px;
+    max-width: 450px;
     text-align: left;
 }
 
@@ -254,6 +275,10 @@ html, body {
 }
 
 @media (max-width: 768px) {
+    .nutrition-goals-outer {
+        padding: 0 1rem;
+        padding-top: 6rem;
+    }
     .nutrition-goals-title {
         margin-top: 12px;
     }

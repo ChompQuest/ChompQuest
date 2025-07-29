@@ -221,7 +221,7 @@ const NutritionGoals: React.FC<NutritionGoalsProps> = ({ onLogin }) => {
         {error && <div className="error-message">{error}</div>}
         {success && <div className="success-message">{success}</div>}
         <form onSubmit={handleSubmit}>
-          <div className="nutrition-goals-halves">
+          <div className={`nutrition-goals-halves ${showGoalsSection ? 'two-columns' : 'single-column'}`}>
             <div className="nutrition-goals-half">
               <h4>Basic Information</h4>
               <div className="form-group">
