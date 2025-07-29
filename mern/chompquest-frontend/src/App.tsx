@@ -115,7 +115,7 @@ function App() {
             path="/nutrition-goals"
             element={
               isLoggedIn || localStorage.getItem('isNewUser') === 'true'
-                ? <NutritionGoals onLogin={handleLogin} />
+                ? <NutritionGoals onLogin={handleLogin} onLogout={handleLogout} />
                 : <Navigate to="/signin" replace />
             }
           />
