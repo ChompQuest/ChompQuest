@@ -9,7 +9,6 @@ import ProgressCard from './ProgressCard';
 import RecentMealsBox from './RecentMealsBox';
 import ProgressBar from './ProgressBar'; 
 import NutrientSelector from './NutrientSelector'; 
-import WaterInput from './AddWaterButton'; 
 import './Dashboard.css';
 
 interface GameStats {
@@ -28,6 +27,7 @@ interface DashboardProps {
   onOpenAddWaterModal: () => void;
   gameStats: GameStats;
   updateGameStats: (newStats: GameStats) => void;
+  isWaterModalOpen: boolean;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({
@@ -40,6 +40,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   onOpenAddWaterModal,
   gameStats,
   updateGameStats,
+  isWaterModalOpen,
 }) => {
   const [showAddMealModal, setShowAddMealModal] = useState(false);
   const [recentMeals, setRecentMeals] = useState<Meal[]>([]);
@@ -205,6 +206,8 @@ const Dashboard: React.FC<DashboardProps> = ({
         <RecentMealsBox
           meals={recentMeals}
           onAddMealClick={handleOpenAddMealModal}
+          onOpenAddWaterModal={onOpenAddWaterModal}
+          isWaterModalOpen={isWaterModalOpen}
         />
 
         {showAddMealModal && (
@@ -212,10 +215,6 @@ const Dashboard: React.FC<DashboardProps> = ({
             <AddMeal onClose={handleCloseAddMealModal} onAddMeal={handleLogMealAndRefreshRecent} />
           </Modal>
         )}
-
-        <WaterInput
-            onOpenAddWaterModal={onOpenAddWaterModal} 
-        />
       </div>
     </div>
   );

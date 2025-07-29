@@ -6,7 +6,7 @@
   height: 53.4rem;
   background-color: rgba(255, 255, 255, 0.9);
   border-radius: 1.5rem;
-  padding: 2rem; 
+  padding: 2rem;
   box-shadow: 0 0.4rem 1.5rem rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
@@ -34,26 +34,240 @@
   font-size: 1.4rem;
   color: #666;
   text-align: center;
-  margin-top: 3rem; 
+  margin-top: 3rem;
 }
 
 .add-meal-dashboard-button {
-  padding: 1.5rem 3.0rem; 
+  padding: 1.5rem 3.0rem;
   background-color: #007bff;
   color: white;
   border: none;
-  border-radius: 0.5rem;
+  border-radius: 5px;
+  font-size: 1.4rem;
   cursor: pointer;
-  font-size: 1.4em; 
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   position: absolute; 
-  top: 2rem;
-  right: 2rem;
-  width: auto;
-  margin: 0;
+  top: 2rem;       
+  right: 2.5rem;    
   z-index: 1001;
 }
 
 .add-meal-dashboard-button:hover {
   background-color: #0056b3;
+}
+
+.add-water-button-main {
+  padding: 1.5rem 3.0rem;
+  background-color: #17a2b8;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 1.4rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: absolute; 
+  top: 2rem;       
+  right: 16rem;  
+  z-index: 1001;
+}
+
+.add-water-button-main:hover {
+  background-color: #138496;
+  transform: translateY(-1px);
+}
+
+.add-water-button-main:active {
+  transform: translateY(0);
+}
+
+.search-section,
+.selected-items-section {
+  width: 100%;
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+}
+
+.search-section h3,
+.selected-items-section h3 {
+  color: #555;
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 1.2em;
+}
+
+.search-input {
+  width: calc(100% - 80px);
+  padding: 10px;
+  margin-right: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 1em;
+}
+
+.search-button,
+.add-item-button,
+.remove-item-button,
+.add-meal-button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: background-color 0.2s ease;
+}
+
+.search-button {
+  background-color: #007bff;
+  color: white;
+}
+.search-button:hover {
+  background-color: #0056b3;
+}
+
+.search-results ul,
+.selected-items-section ul {
+  list-style: none;
+  padding: 0;
+  margin-top: 10px;
+}
+
+.search-results li,
+.selected-items-section li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+  color: #444;
+}
+
+.search-results li:last-child,
+.selected-items-section li:last-child {
+  border-bottom: none;
+}
+
+.search-results li:hover {
+  background-color: #f9f9f9;
+  cursor: pointer;
+}
+
+.add-item-button {
+  background-color: #28a745;
+  color: white;
+  padding: 5px 10px;
+  font-size: 0.85em;
+}
+.add-item-button:hover {
+  background-color: #218838;
+}
+
+.remove-item-button {
+  background-color: #dc3545;
+  color: white;
+  padding: 5px 10px;
+  font-size: 0.85em;
+}
+.remove-item-button:hover {
+  background-color: #c82333;
+}
+
+.selected-items-section p {
+  color: #777;
+  text-align: center;
+  font-style: italic;
+}
+
+.add-meal-button { 
+  background-color: #28a745;
+  color: white;
+  padding: 1.5rem 3.0rem;
+  font-size: 1.4rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-top: 20px;
+  width: 100%;
+}
+.add-meal-button:hover:not(:disabled) {
+  background-color: #218838;
+}
+.add-meal-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.custom-food-section {
+  width: 100%;
+  margin-top: 30px;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.custom-food-heading {
+  margin-top: 0;
+  margin-bottom: 5px;
+  color: #555;
+  font-size: 1.2em;
+  text-align: center;
+}
+
+.manual-inputs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px 20px;
+  width: 100%;
+}
+
+.manual-inputs-grid label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.95em;
+  color: #666;
+}
+
+.manual-inputs-grid input[type="text"],
+.manual-inputs-grid input[type="number"] {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  margin-top: 5px;
+  font-size: 1em;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.add-custom-meal-button {
+  background-color: #28a745;
+  color: white;
+  padding: 12px 25px;
+  font-size: 1.1em;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  width: 100%;
+  align-self: center;
+  margin-top: 15px;
+}
+
+.add-custom-meal-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.add-custom-meal-button:hover:not(:disabled) {
+  background-color: #218838;
 }
