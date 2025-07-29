@@ -6,6 +6,7 @@ import {
   feetInchesToCm,
   lbsToKg,
 } from '../utils/nutritionCalculator';
+import ProfilePictureNutritionGoals from './mainPage/ProfilePictureNutritionGoals';
 import './NutritionGoals.css';
 
 interface LocationState {
@@ -21,6 +22,12 @@ const NutritionGoals: React.FC<NutritionGoalsProps> = ({ onLogin }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { isNewUser = false, userId } = (location.state as LocationState) || {};
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('userId');
+    onLogin();
+  };
 
   // Form state
   const [sex, setSex] = useState<'male' | 'female' | ''>('');
@@ -190,6 +197,23 @@ const NutritionGoals: React.FC<NutritionGoalsProps> = ({ onLogin }) => {
 
   return (
     <div className="nutrition-goals-outer">
+      <div className="dashboard-logo-fixed">
+        <button 
+          onClick={() => navigate('/dashboard')}
+          className="logo-button"
+          style={{ 
+            background: 'none', 
+            border: 'none', 
+            padding: 0, 
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center'
+          }}
+        >
+          <img src="/214161846.jfif" alt="Logo" style={{ width: '7.2rem', height: '7.2rem', borderRadius: '1.2rem' }} />
+        </button>
+      </div>
+      <ProfilePictureNutritionGoals onLogout={handleLogout} />
       <div className="nutrition-goals-title">
         <h2>{isNewUser ? 'Set Your Nutrition Goals' : 'Update Nutrition Goals'}</h2>
       </div>

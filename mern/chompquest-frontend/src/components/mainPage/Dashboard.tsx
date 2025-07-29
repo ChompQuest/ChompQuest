@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import NutritionTracker from './NutritionTracker';
 import type { NutrientData, LoggedMealData, Meal, SelectableNutrient } from '../types';
 import '../../App.css';
@@ -31,6 +32,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   waterGoal,
   onOpenAddWaterModal,
 }) => {
+  const navigate = useNavigate();
   const [showAddMealModal, setShowAddMealModal] = useState(false);
   const [recentMeals, setRecentMeals] = useState<Meal[]>([]);
   const [selectedNutrientForProgressBar, setSelectedNutrientForProgressBar] = useState<SelectableNutrient>('calories');
@@ -115,7 +117,20 @@ const Dashboard: React.FC<DashboardProps> = ({
   return (
     <div className="dashboard-main-content">
       <div className="dashboard-logo-fixed">
-        <img src="/214161846.jfif" alt="Logo" style={{ width: '7.2rem', height: '7.2rem', borderRadius: '1.2rem' }} />
+        <button 
+          onClick={() => window.location.reload()}
+          className="logo-button"
+          style={{ 
+            background: 'none', 
+            border: 'none', 
+            padding: 0, 
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center'
+          }}
+        >
+          <img src="/214161846.jfif" alt="Logo" style={{ width: '7.2rem', height: '7.2rem', borderRadius: '1.2rem' }} />
+        </button>
       </div>
       <ProfilePicture onLogout={onLogout} />
 
