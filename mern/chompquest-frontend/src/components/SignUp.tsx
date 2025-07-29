@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './SignUp.css'; // Make sure this CSS file exists and is linked
+import './SignUp.css'; 
 
 interface SignUpProps {
   onLogin: () => void;
@@ -17,9 +17,8 @@ const SignUp: React.FC<SignUpProps> = ({ onLogin }) => {
   const [redirecting, setRedirecting] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault(); // can't submit on default
+    event.preventDefault(); 
 
-    // clears any prev errors
     setError(null); 
     setSuccess(null);
 
@@ -61,7 +60,6 @@ const SignUp: React.FC<SignUpProps> = ({ onLogin }) => {
         
         setRedirecting(true); // Show loading
         
-        // Redirect to nutrition goals page after successful signup
         setTimeout(() => {
           navigate('/nutrition-goals', { 
             state: { 
@@ -88,7 +86,7 @@ const SignUp: React.FC<SignUpProps> = ({ onLogin }) => {
 
   return (
     <div className="signup-container">
-      <h3>Welcome to ChompQuest! <br /> This site was built to help you keep track of your goals while making it fun! Let's play</h3>
+      <h3>Welcome to ChompQuest! <br /> This site was built to help you keep track of your goals while making it fun!<br />Let's play</h3>
       <h2>Create an Account</h2>
       {error && <div className="error-message">{error}</div>}
       {success && <div className="success-message">{success}</div>}
