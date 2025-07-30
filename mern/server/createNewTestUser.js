@@ -52,7 +52,7 @@ async function createNewTestUser() {
       username: testUser.username 
     });
     
-    console.log('\n📋 User Details:');
+    console.log('\nUser Details:');
     console.log('Username:', createdUser.username);
     console.log('Email:', createdUser.email);
     console.log('Password is hashed:', createdUser.password.startsWith('$2a$'));
