@@ -4,11 +4,11 @@ import bcrypt from 'bcryptjs';
 const BASE_URL = 'http://localhost:5050';
 
 async function testPasswordSecurity() {
-  console.log('🔒 Testing Password Security Features...\n');
+  console.log('Testing Password Security Features...\n');
 
   try {
     // Test 1: User Registration with Password Hashing
-    console.log('1️⃣ Testing User Registration with Password Hashing...');
+    console.log('Testing User Registration with Password Hashing...');
     const testUser = {
       username: 'securitytestuser',
       email: 'security@test.com',
@@ -27,14 +27,14 @@ async function testPasswordSecurity() {
     console.log('Signup Response:', signupData);
 
     if (signupResponse.ok) {
-      console.log('✅ User registered successfully!');
+      console.log('User registered successfully!');
     } else {
-      console.log('❌ Signup failed:', signupData.message);
+      console.log('Signup failed:', signupData.message);
       return;
     }
 
     // Test 2: Login with Correct Password
-    console.log('\n2️⃣ Testing Login with Correct Password...');
+    console.log('\nTesting Login with Correct Password...');
     const loginResponse = await fetch(`${BASE_URL}/user/login`, {
       method: 'POST',
       headers: {
@@ -50,10 +50,10 @@ async function testPasswordSecurity() {
     console.log('Login Response:', loginData);
 
     if (loginResponse.ok) {
-      console.log('✅ Login successful with correct password!');
-      console.log('✅ JWT Token received:', loginData.token ? 'Yes' : 'No');
+      console.log('Login successful with correct password!');
+      console.log('JWT Token received:', loginData.token ? 'Yes' : 'No');
     } else {
-      console.log('❌ Login failed:', loginData.message);
+      console.log('Login failed:', loginData.message);
       return;
     }
 
@@ -74,13 +74,13 @@ async function testPasswordSecurity() {
     console.log('Wrong Password Response:', wrongPasswordData);
 
     if (wrongPasswordResponse.status === 401) {
-      console.log('✅ Security: Wrong password correctly rejected!');
+      console.log('Security: Wrong password correctly rejected!');
     } else {
-      console.log('❌ Security issue: Wrong password was accepted!');
+      console.log('Security issue: Wrong password was accepted!');
     }
 
     // Test 4: Password Validation
-    console.log('\n4️⃣ Testing Password Validation...');
+    console.log('\nTesting Password Validation...');
     
     // Test short password
     const shortPasswordResponse = await fetch(`${BASE_URL}/user/signup`, {
@@ -99,13 +99,13 @@ async function testPasswordSecurity() {
     console.log('Short Password Response:', shortPasswordData);
 
     if (shortPasswordResponse.status === 400) {
-      console.log('✅ Password validation working: Short password rejected!');
+      console.log('Password validation working: Short password rejected!');
     } else {
-      console.log('❌ Password validation issue: Short password accepted!');
+      console.log('Password validation issue: Short password accepted!');
     }
 
     // Test 5: Username Validation
-    console.log('\n5️⃣ Testing Username Validation...');
+    console.log('\nTesting Username Validation...');
     
     const invalidUsernameResponse = await fetch(`${BASE_URL}/user/signup`, {
       method: 'POST',
@@ -123,13 +123,13 @@ async function testPasswordSecurity() {
     console.log('Invalid Username Response:', invalidUsernameData);
 
     if (invalidUsernameResponse.status === 400) {
-      console.log('✅ Username validation working: Invalid username rejected!');
+      console.log('Username validation working: Invalid username rejected!');
     } else {
-      console.log('❌ Username validation issue: Invalid username accepted!');
+      console.log('Username validation issue: Invalid username accepted!');
     }
 
     // Test 6: Email Validation
-    console.log('\n6️⃣ Testing Email Validation...');
+    console.log('\nTesting Email Validation...');
     
     const invalidEmailResponse = await fetch(`${BASE_URL}/user/signup`, {
       method: 'POST',
@@ -147,19 +147,19 @@ async function testPasswordSecurity() {
     console.log('Invalid Email Response:', invalidEmailData);
 
     if (invalidEmailResponse.status === 400) {
-      console.log('✅ Email validation working: Invalid email rejected!');
+      console.log('Email validation working: Invalid email rejected!');
     } else {
-      console.log('❌ Email validation issue: Invalid email accepted!');
+      console.log('Email validation issue: Invalid email accepted!');
     }
 
-    console.log('\n🎉 Password Security Tests Completed!');
-    console.log('✅ Password hashing is working');
-    console.log('✅ Password comparison is working');
-    console.log('✅ Input validation is working');
-    console.log('✅ JWT authentication is working');
+    console.log('\nPassword Security Tests Completed!');
+    console.log('Password hashing is working');
+    console.log('Password comparison is working');
+    console.log('Input validation is working');
+    console.log('JWT authentication is working');
 
   } catch (error) {
-    console.error('❌ Test failed:', error);
+    console.error('Test failed:', error);
   }
 }
 
