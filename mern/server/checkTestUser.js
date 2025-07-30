@@ -15,7 +15,7 @@ async function checkTestUser() {
     });
     
     if (testUser) {
-      console.log('✅ Test user found!');
+      console.log('Test user found!');
       console.log('Username:', testUser.username);
       console.log('Email:', testUser.email);
       console.log('Password is hashed:', testUser.password.startsWith('$2a$') || testUser.password.startsWith('$2b$'));
@@ -23,7 +23,7 @@ async function checkTestUser() {
       console.log('Created at:', testUser.createdAt);
       console.log('User ID:', testUser._id);
     } else {
-      console.log('❌ Test user not found');
+      console.log('Test user not found');
       
       // Let's see how many users we have
       const totalUsers = await db.collection("users").countDocuments();
