@@ -58,7 +58,7 @@ async function testPasswordSecurity() {
     }
 
     // Test 3: Login with Wrong Password
-    console.log('\n3️⃣ Testing Login with Wrong Password...');
+    console.log('\nTesting Login with Wrong Password...');
     const wrongPasswordResponse = await fetch(`${BASE_URL}/user/login`, {
       method: 'POST',
       headers: {
