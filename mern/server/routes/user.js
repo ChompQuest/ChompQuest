@@ -2,9 +2,45 @@ import express from "express";
 import { getDb } from "../db/connection.js";
 import { ObjectId } from "mongodb";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
 import authMiddleware from "../middleware/authMiddleware.js";
 
 const router = express.Router();
+
+// Password validation function
+const validatePassword = (password) => {
+  if (password.length < 6) {
+    return { isValid: false, message: "Password must be at least 6 characters long" };
+  }
+  if (password.length > 128) {
+    return { isValid: false, message: "Password must be less than 128 characters" };
+  }
+  return { isValid: true };
+};
+
+// Email validation function
+const validateEmail = (email) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return { isValid: false, message: "Please enter a valid email address" };
+  }
+  return { isValid: true };
+};
+
+// Username validation function
+const validateUsername = (username) => {
+  if (username.length < 3) {
+    return { isValid: false, message: "Username must be at least 3 characters long" };
+  }
+  if (username.length > 30) {
+    return { isValid: false, message: "Username must be less than 30 characters" };
+  }
+  const usernameRegex = /^[a-zA-Z0-9_]+$/;
+  if (!usernameRegex.test(username)) {
+    return { isValid: false, message: "Username can only contain letters, numbers, and underscores" };
+  }
+  return { isValid: true };
+};
 
 // User registration endpoint
 router.post("/signup", async (req, res) => {
@@ -14,6 +50,22 @@ router.post("/signup", async (req, res) => {
     // Basic validation
     if (!username || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
+    }
+
+    // Validate input fields
+    const usernameValidation = validateUsername(username);
+    if (!usernameValidation.isValid) {
+      return res.status(400).json({ message: usernameValidation.message });
+    }
+
+    const emailValidation = validateEmail(email);
+    if (!emailValidation.isValid) {
+      return res.status(400).json({ message: emailValidation.message });
+    }
+
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
+      return res.status(400).json({ message: passwordValidation.message });
     }
 
     // Check if user already exists
@@ -26,11 +78,15 @@ router.post("/signup", async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
+    // Hash the password
+    const saltRounds = 12;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
     // Create new user with game stats
     const newUser = {
       username,
       email,
-      password, // TODO: Hash password before storing
+      password: hashedPassword, // Store hashed password
       createdAt: new Date(),
       goals: [],
       progress: {},
@@ -63,14 +119,18 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ message: "Username and password are required" });
     }
 
-    // Check if user exists by username only
+    // Find user by username only
     const db = getDb();
-    const user = await db.collection("users").findOne({ 
-      username: username,
-      password: password 
-    });
+    const user = await db.collection("users").findOne({ username: username });
 
     if (!user) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    // Compare password with hashed password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    
+    if (!isPasswordValid) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
@@ -349,6 +409,127 @@ router.put("/nutrition-goals-by-id", async (req, res) => {
   } catch (err) {
     console.error("Update nutrition goals error:", err);
     res.status(500).json({ message: "Error updating nutrition goals" });
+  }
+});
+
+// Change password endpoint (protected route)
+router.put("/change-password", authMiddleware, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user.id;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: "Current password and new password are required" });
+    }
+
+    // Validate new password
+    const passwordValidation = validatePassword(newPassword);
+    if (!passwordValidation.isValid) {
+      return res.status(400).json({ message: passwordValidation.message });
+    }
+
+    const db = getDb();
+    const user = await db.collection("users").findOne({ _id: new ObjectId(userId) });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Verify current password
+    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isCurrentPasswordValid) {
+      return res.status(401).json({ message: "Current password is incorrect" });
+    }
+
+    // Hash new password
+    const saltRounds = 12;
+    const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
+
+    // Update password
+    await db.collection("users").updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: { password: hashedNewPassword } }
+    );
+
+    res.status(200).json({ message: "Password changed successfully" });
+  } catch (err) {
+    console.error("Change password error:", err);
+    res.status(500).json({ message: "Error changing password" });
+  }
+});
+
+// Get user profile (protected route)
+router.get("/profile", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    const db = getDb();
+    const user = await db.collection("users").findOne(
+      { _id: new ObjectId(userId) },
+      { projection: { password: 0 } } // Exclude password from response
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ 
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        createdAt: user.createdAt,
+        game_stats: user.game_stats
+      }
+    });
+  } catch (err) {
+    console.error("Get profile error:", err);
+    res.status(500).json({ message: "Error retrieving profile" });
+  }
+});
+
+// Update user profile (protected route)
+router.put("/profile", authMiddleware, async (req, res) => {
+  try {
+    const { email } = req.body;
+    const userId = req.user.id;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    // Validate email
+    const emailValidation = validateEmail(email);
+    if (!emailValidation.isValid) {
+      return res.status(400).json({ message: emailValidation.message });
+    }
+
+    const db = getDb();
+    
+    // Check if email is already taken by another user
+    const existingUser = await db.collection("users").findOne({ 
+      email: email,
+      _id: { $ne: new ObjectId(userId) }
+    });
+
+    if (existingUser) {
+      return res.status(400).json({ message: "Email is already taken" });
+    }
+
+    // Update user profile
+    const result = await db.collection("users").updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: { email: email } }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ message: "Profile updated successfully" });
+  } catch (err) {
+    console.error("Update profile error:", err);
+    res.status(500).json({ message: "Error updating profile" });
   }
 });
 
