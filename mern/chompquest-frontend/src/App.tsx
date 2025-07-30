@@ -188,7 +188,7 @@ function App() {
             path="/nutrition-goals"
             element={
               isLoggedIn
-                ? <NutritionGoals onLogin={handleLogin} />
+                ? <NutritionGoals onLogin={handleLogin} onLogout={handleLogout} />
                 : <Navigate to="/signin" replace />
             }
           />
