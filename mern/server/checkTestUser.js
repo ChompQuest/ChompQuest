@@ -2,7 +2,7 @@ import { getDb, connectToDatabase } from "./db/connection.js";
 
 async function checkTestUser() {
   try {
-    console.log('🔍 Checking for test user in database...\n');
+    console.log('Checking for test user in database...\n');
     
     // Connect to database first
     await connectToDatabase();
