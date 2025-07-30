@@ -3,12 +3,10 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import SignIn from './components/SignIn';
 import SignUp from './components/SignUp';
 import NutritionGoals from './components/NutritionGoals';
+import SetNutritionGoals from './components/SetNutritionGoals';
 import Dashboard from './components/mainPage/Dashboard';
-
 import type { NutrientData, LoggedMealData } from './components/types';
-
 import AddWaterModal from './components/mainPage/AddCustomWaterModal';
-
 import './App.css';
 
 interface GameStats {
@@ -20,7 +18,12 @@ interface GameStats {
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
     const user = localStorage.getItem('user');
-    return user ? JSON.parse(user).isLoggedIn : false;
+    if (user) {
+      const userData = JSON.parse(user);
+      // User is only considered "fully logged in" if they completed nutrition goals
+      return userData.isLoggedIn === true;
+    }
+    return false;
   });
 
   const [gameStats, setGameStats] = useState<GameStats>(() => {
@@ -30,8 +33,8 @@ function App() {
       try {
         const parsedStats = JSON.parse(storedStats);
         // Validate that we have proper game stats
-        if (parsedStats && typeof parsedStats.dailyStreak === 'number' && 
-            typeof parsedStats.pointTotal === 'number' && 
+        if (parsedStats && typeof parsedStats.dailyStreak === 'number' &&
+            typeof parsedStats.pointTotal === 'number' &&
             typeof parsedStats.currentRank === 'number') {
           return parsedStats;
         }
@@ -48,14 +51,14 @@ function App() {
 
   const handleLogin = () => {
     setIsLoggedIn(true);
-    
+
     // Check for fresh game stats that were loaded during sign in
     const freshGameStats = localStorage.getItem('freshGameStats');
     if (freshGameStats) {
       try {
         const parsedStats = JSON.parse(freshGameStats);
-        if (parsedStats && typeof parsedStats.dailyStreak === 'number' && 
-            typeof parsedStats.pointTotal === 'number' && 
+        if (parsedStats && typeof parsedStats.dailyStreak === 'number' &&
+            typeof parsedStats.pointTotal === 'number' &&
             typeof parsedStats.currentRank === 'number') {
           setGameStats(parsedStats);
           localStorage.setItem('gameStats', JSON.stringify(parsedStats));
@@ -81,7 +84,7 @@ function App() {
     localStorage.removeItem('gameStats'); // Clear game stats
     setGameStats({ dailyStreak: 0, pointTotal: 0, currentRank: 1 }); // Reset game stats
     setDailyNutrition({ calories: 0, protein: 0, carbs: 0, fats: 0 });
-    setCurrentWaterIntake(0); 
+    setCurrentWaterIntake(0);
   };
 
   const updateGameStats = (newStats: GameStats) => {
@@ -104,7 +107,7 @@ function App() {
     fats: 60,
   };
 
-  const logMeal = (newIntake: LoggedMealData) => { 
+  const logMeal = (newIntake: LoggedMealData) => {
     setDailyNutrition(prev => ({
       calories: prev.calories + newIntake.calories,
       protein: prev.protein + newIntake.protein,
@@ -160,6 +163,7 @@ function App() {
                   onOpenAddWaterModal={handleOpenAddCustomWaterModal}
                   gameStats={gameStats}
                   updateGameStats={updateGameStats}
+                  isWaterModalOpen={showAddCustomWaterModal}
                 />
               ) : (
                 <Navigate to="/signin" replace /> // if not logged in, go sign in
@@ -173,12 +177,18 @@ function App() {
             element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <Navigate to="/signin" replace />}
           />
 
-          {/* nutrition goals route - only accessible if logged in */}
+          {/* set nutrition goals route - for new users after signup */}
+          <Route
+            path="/set-nutrition-goals"
+            element={<SetNutritionGoals onLogin={handleLogin} />}
+          />
+          
+          {/* update nutrition goals route - for existing logged-in users */}
           <Route
             path="/nutrition-goals"
             element={
-              isLoggedIn || localStorage.getItem('isNewUser') === 'true'
-                ? <NutritionGoals onLogin={handleLogin} onLogout={handleLogout} />
+              isLoggedIn
+                ? <NutritionGoals onLogin={handleLogin} />
                 : <Navigate to="/signin" replace />
             }
           />
@@ -187,7 +197,10 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
 
-        {/* NEW: Render the AddWaterModal conditionally at the root level */}
+        {/* The WaterInput button is no longer rendered directly here.
+            It is now rendered inside RecentMealsBox. */}
+
+        {/* Render the AddWaterModal conditionally */}
         {showAddCustomWaterModal && (
           <AddWaterModal
             onClose={handleCloseAddCustomWaterModal}

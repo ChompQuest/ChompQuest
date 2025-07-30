@@ -16,6 +16,8 @@ const SignUp: React.FC<SignUpProps> = ({ onSignup }) => {
   const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault(); 
 
@@ -54,13 +56,15 @@ const SignUp: React.FC<SignUpProps> = ({ onSignup }) => {
       if (response.ok) {
         setSuccess('Account created successfully! Setting up your profile...');
         
-        // Store user data in localStorage
-        localStorage.setItem('user', JSON.stringify({
+        // Store user data in localStorage (but NOT as logged in yet)
+        const userData = {
           userId: data.userId,
           username: username,
-          isLoggedIn: true
-        }));
-        localStorage.setItem('isNewUser', 'true'); // Set new user flag
+          isLoggedIn: false, // Will be set to true after nutrition goals
+          needsNutritionGoals: true
+        };
+        console.log('SignUp - Storing userData:', userData);
+        localStorage.setItem('user', JSON.stringify(userData));
         
         // Store JWT token for API calls (if provided)
         if (data.token) {
@@ -72,11 +76,11 @@ const SignUp: React.FC<SignUpProps> = ({ onSignup }) => {
           localStorage.setItem('gameStats', JSON.stringify(data.game_stats));
         }
         
-        // Call the onLogin callback to update parent state
+        // Call the onSignup callback to update parent state
         onSignup();
         
         setTimeout(() => {
-          navigate('/nutrition-goals', { 
+          navigate('/set-nutrition-goals', { 
             state: { 
               isNewUser: true, 
               userId: data.userId 
