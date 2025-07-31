@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import SignIn from './components/SignIn';
 import SignUp from './components/SignUp';
@@ -94,26 +94,105 @@ function App() {
 
   //figure out how to get real values from backend
   const [dailyNutrition, setDailyNutrition] = useState<NutrientData>({
-    calories: 1200,
-    protein: 80,
-    carbs: 150,
-    fats: 40,
+    calories: 0,
+    protein: 0,
+    carbs: 0,
+    fats: 0,
   });
 
-  const dailyGoals: NutrientData = {
+  const [dailyGoals, setDailyGoals] = useState<NutrientData>({
     calories: 2000,
     protein: 100,
     carbs: 250,
     fats: 60,
+  });
+
+  // Fetch daily nutrition data from backend
+  const fetchDailyNutrition = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.error('No JWT token found');
+        return;
+      }
+
+      const response = await fetch('http://localhost:5050/nutrition/today', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Update daily nutrition totals
+        setDailyNutrition({
+          calories: data.totals.calories || 0,
+          protein: data.totals.protein || 0,
+          carbs: data.totals.carbs || 0,
+          fats: data.totals.fat || 0,
+        });
+
+        // Update daily goals if available
+        if (data.goals) {
+          setDailyGoals({
+            calories: data.goals.calories || 2000,
+            protein: data.goals.protein || 100,
+            carbs: data.goals.carbs || 250,
+            fats: data.goals.fat || 60,
+          });
+        }
+      } else {
+        console.error('Failed to fetch daily nutrition:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error fetching daily nutrition:', error);
+    }
   };
 
-  const logMeal = (newIntake: LoggedMealData) => {
-    setDailyNutrition(prev => ({
-      calories: prev.calories + newIntake.calories,
-      protein: prev.protein + newIntake.protein,
-      carbs: prev.carbs + newIntake.carbs,
-      fats: prev.fats + newIntake.fats,
-    }));
+  // Fetch nutrition data when user logs in
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchDailyNutrition();
+    }
+  }, [isLoggedIn]);
+
+  const logMeal = async (newIntake: LoggedMealData) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.error('No JWT token found');
+        return;
+      }
+
+      // Add meal to backend
+      const response = await fetch('http://localhost:5050/nutrition/meals', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: newIntake.name,
+          calories: newIntake.calories,
+          protein: newIntake.protein,
+          carbs: newIntake.carbs,
+          fat: newIntake.fats,
+          mealType: 'snack', // Default to snack, could be made configurable if we have time, but I kept it like this for now
+          notes: ''  // notes are optional and can be added later
+        }),
+      });
+
+      if (response.ok) {
+        // Refresh nutrition data from backend
+        await fetchDailyNutrition();
+      } else {
+        console.error('Failed to add meal:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error adding meal:', error);
+    }
   };
   // Test ends
 
