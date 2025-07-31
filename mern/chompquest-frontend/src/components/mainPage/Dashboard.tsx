@@ -51,7 +51,9 @@ const Dashboard: React.FC<DashboardProps> = ({
   useEffect(() => {
     const fetchGameStats = async () => {
       // If we already have valid game stats, don't fetch
-      if (gameStats.dailyStreak > 0 || gameStats.pointTotal > 0 || gameStats.currentRank > 1) {
+      if (gameStats && typeof gameStats.currentRank === 'number' && 
+          typeof gameStats.dailyStreak === 'number' && 
+          typeof gameStats.pointTotal === 'number') {
         return;
       }
 
