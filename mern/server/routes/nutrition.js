@@ -269,4 +269,26 @@ router.put("/meals/:id", authMiddleware, async (req, res) => {
   }
 });
 
+// GET /nutrition/meals/recent - Get last 10 meals for logged-in user
+router.get("/meals/recent", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const db = getDb();
+    
+    // Get last 10 meals for the user, sorted by most recent first
+    const recentMeals = await db.collection("meals").find({
+      userId: new ObjectId(userId)
+    })
+    .sort({ createdAt: -1 }) // Sort by creation date, most recent first
+    .limit(10) // Limit to 10 meals
+    .toArray();
+    
+    res.status(200).json({ meals: recentMeals });
+    
+  } catch (err) {
+    console.error("Get recent meals error:", err);
+    res.status(500).json({ message: "Error retrieving recent meals" });
+  }
+});
+
 export default router; 
