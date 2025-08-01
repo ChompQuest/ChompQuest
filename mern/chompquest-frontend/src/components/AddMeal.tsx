@@ -5,9 +5,9 @@ import type { NutrientData, LoggedMealData } from './types';
 interface AddMealProps {
   onClose: () => void;
   onAddMeal: (mealData: LoggedMealData) => void;
+  nutrientLookup: { [key: string]: NutrientData };
 }
-
-const AddMeal: React.FC<AddMealProps> = ({ onClose, onAddMeal }) => {
+const AddMeal: React.FC<AddMealProps> = ({ onClose, onAddMeal, nutrientLookup }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<string[]>([]);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
@@ -17,17 +17,6 @@ const AddMeal: React.FC<AddMealProps> = ({ onClose, onAddMeal }) => {
   const [customProtein, setCustomProtein] = useState<number | ''>(0);
   const [customCarbs, setCustomCarbs] = useState<number | ''>(0);
   const [customFats, setCustomFats] = useState<number | ''>(0);
-
-  // API needs to be integrated in here!!
-  const nutrientLookup: { [key: string]: NutrientData } = {
-    'Apple (100g)': { calories: 52, protein: 0, carbs: 14, fats: 0 },
-    'Apple Juice (200ml)': { calories: 96, protein: 0, carbs: 24, fats: 0 },
-    'Chicken Breast (100g)': { calories: 165, protein: 31, carbs: 0, fats: 4 },
-    'Chicken Thigh (100g)': { calories: 209, protein: 26, carbs: 0, fats: 11 },
-    'Grilled Chicken Salad': { calories: 350, protein: 35, carbs: 15, fats: 18 },
-    'White Rice (cooked)': { calories: 130, protein: 3, carbs: 28, fats: 0 },
-    'Brown Rice (cooked)': { calories: 112, protein: 2, carbs: 23, fats: 1 },
-  };
 
   const handleSearch = () => {
     const lowerCaseSearch = searchTerm.toLowerCase();
@@ -76,6 +65,7 @@ const AddMeal: React.FC<AddMealProps> = ({ onClose, onAddMeal }) => {
     });
 
     const mealData: LoggedMealData = {
+      id: Date.now().toString(),
       name: mealNameParts.join(', ') || 'Mixed Meal',
       date: new Date().toISOString(),
       calories: totalCalories,
@@ -96,6 +86,7 @@ const AddMeal: React.FC<AddMealProps> = ({ onClose, onAddMeal }) => {
     }
 
     const customMealData: LoggedMealData = {
+      id: Date.now().toString(),
       name: customFoodName,
       date: new Date().toISOString(),
       calories: Number(customCalories),

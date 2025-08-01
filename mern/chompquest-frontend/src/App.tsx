@@ -7,6 +7,9 @@ import SetNutritionGoals from './components/SetNutritionGoals';
 import Dashboard from './components/mainPage/Dashboard';
 import type { NutrientData, LoggedMealData } from './components/types';
 import AddWaterModal from './components/mainPage/AddCustomWaterModal';
+
+import AdminDashboard from './components/admin/AdminDashboard';
+
 import './App.css';
 
 interface GameStats {
@@ -16,15 +19,18 @@ interface GameStats {
 }
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    const user = localStorage.getItem('user');
-    if (user) {
-      const userData = JSON.parse(user);
-      // User is only considered "fully logged in" if they completed nutrition goals
-      return userData.isLoggedIn === true;
-    }
-    return false;
-  });
+  // const [isLoggedIn, setIsLoggedIn] = useState(() => {
+  //   const user = localStorage.getItem('user');
+  //   if (user) {
+  //     const userData = JSON.parse(user);
+  //     // User is only considered "fully logged in" if they completed nutrition goals
+  //     return userData.isLoggedIn === true;
+  //   }
+  //   return false;
+  // });
+
+// for testing purposes, we will set isLoggedIn to true
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
 
   const [gameStats, setGameStats] = useState<GameStats>(() => {
     // Try to get game stats from localStorage on app start
@@ -251,9 +257,10 @@ function App() {
           />
 
           {/* if they are logged in -> dashboard, if not -> login */}
+          {/* NEED TO CHANGE THIS BACK AFTER DEV */}
           <Route
             path="/"
-            element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <Navigate to="/signin" replace />}
+            element={isLoggedIn ? <Navigate to="/admin-test" replace /> : <Navigate to="/signin" replace />}
           />
 
           {/* set nutrition goals route - for new users after signup */}
@@ -271,6 +278,9 @@ function App() {
                 : <Navigate to="/signin" replace />
             }
           />
+
+          {/* Admin test page - only accessible if user is logged in and is an admin */}
+          <Route path="/admin-test" element={<AdminDashboard />} />
 
           {/* catch all route for any issues */}
           <Route path="*" element={<Navigate to="/" replace />} />

@@ -12,16 +12,13 @@ interface Meal {
 interface RecentMealsBoxProps {
   meals: Meal[];
   onAddMealClick: () => void;
-  // NEW: Prop for opening the water modal (passed from App -> Dashboard -> here)
   onOpenAddWaterModal: () => void;
-  // NEW: Prop to know if the water modal is open (passed from App -> Dashboard -> here)
   isWaterModalOpen: boolean;
 }
 
 const RecentMealsBox: React.FC<RecentMealsBoxProps> = ({
   meals,
   onAddMealClick,
-  // NEW: Destructure new props
   onOpenAddWaterModal,
   isWaterModalOpen,
 }) => {
@@ -32,8 +29,6 @@ const RecentMealsBox: React.FC<RecentMealsBoxProps> = ({
         Add Meal
       </button>
 
-      {/* NEW: Directly render the Add Water button JSX here */}
-      {/* Conditionally render: only show if the water modal is NOT open */}
       {!isWaterModalOpen && (
         <button onClick={onOpenAddWaterModal} className="add-water-button-main">
           Add Water

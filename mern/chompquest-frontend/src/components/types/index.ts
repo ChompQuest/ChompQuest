@@ -6,6 +6,7 @@ export interface NutrientData {
 }
 
 export interface LoggedMealData {
+  id: string;
   name: string;
   date: string; 
   calories: number;
