@@ -44,6 +44,7 @@ const validateUsername = (username) => {
 
 // User registration endpoint
 router.post("/signup", async (req, res) => {
+  console.log('SIGNUP ENDPOINT HIT - UPDATED CODE RUNNING');
   try {
     const { username, email, password } = req.body;
 
@@ -99,11 +100,47 @@ router.post("/signup", async (req, res) => {
 
     const result = await db.collection("users").insertOne(newUser);
     
-    res.status(201).json({ 
-      message: "User created successfully",
-      userId: result.insertedId.toString(),
-      username: username
-    });
+    console.log('User created successfully, creating JWT token...');
+    
+    // Create JWT payload for the newly created user
+    const payload = {
+      user: {
+        id: result.insertedId.toString(),
+        username: username,
+        role: 'member'
+      }
+    };
+
+    console.log('JWT payload:', payload);
+
+    // Sign the token
+    jwt.sign(
+      payload,
+      process.env.JWT_SECRET,
+      { expiresIn: "3h" },
+      (err, token) => {
+        if (err) {
+          console.error('JWT signing error:', err);
+          throw err;
+        }
+        
+        console.log('JWT token created successfully');
+        
+        // Return user data with game stats and token (same as login)
+        res.status(201).json({ 
+          message: "User created successfully",
+          userId: result.insertedId.toString(),
+          username: username,
+          user: {
+            id: result.insertedId,
+            username: username,
+            email: email
+          },
+          game_stats: newUser.game_stats,
+          token
+        });
+      }
+    );
   } catch (err) {
     console.error("Signup error details:", err);
     res.status(500).json({ message: "Error creating user", error: err.message });

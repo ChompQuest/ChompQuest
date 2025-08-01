@@ -101,16 +101,27 @@ const SetNutritionGoals: React.FC<SetNutritionGoalsProps> = ({ onLogin }) => {
         }
       };
 
-      const endpoint = userId 
-        ? `http://localhost:5050/user/nutrition-goals-by-id?userId=${userId}`
-        : 'http://localhost:5050/user/nutrition-goals';
+      // Get the JWT token from localStorage
+      const token = localStorage.getItem('token');
+      
+      // Use the protected endpoint if we have a token, otherwise use the unprotected endpoint
+      const endpoint = token 
+        ? 'http://localhost:5050/user/nutrition-goals'
+        : `http://localhost:5050/user/nutrition-goals-by-id?userId=${userId}`;
       const method = 'POST';
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+
+      // Add Authorization header if we have a token
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
 
       const response = await fetch(endpoint, {
         method: method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
         body: JSON.stringify(nutritionGoals),
       });
 
