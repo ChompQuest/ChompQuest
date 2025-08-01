@@ -51,7 +51,9 @@ const Dashboard: React.FC<DashboardProps> = ({
   useEffect(() => {
     const fetchGameStats = async () => {
       // If we already have valid game stats, don't fetch
-      if (gameStats.dailyStreak > 0 || gameStats.pointTotal > 0 || gameStats.currentRank > 1) {
+      if (gameStats && typeof gameStats.currentRank === 'number' && 
+          typeof gameStats.dailyStreak === 'number' && 
+          typeof gameStats.pointTotal === 'number') {
         return;
       }
 
@@ -169,7 +171,20 @@ const Dashboard: React.FC<DashboardProps> = ({
   return (
     <div className="dashboard-main-content">
       <div className="dashboard-logo-fixed">
-        <img src="/214161846.jfif" alt="Logo" style={{ width: '7.2rem', height: '7.2rem', borderRadius: '1.2rem' }} />
+        <button 
+          onClick={() => window.location.reload()}
+          className="logo-button"
+          style={{ 
+            background: 'none', 
+            border: 'none', 
+            padding: 0, 
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center'
+          }}
+        >
+          <img src="/214161846.jfif" alt="Logo" style={{ width: '7.2rem', height: '7.2rem', borderRadius: '1.2rem' }} />
+        </button>
       </div>
       <ProfilePicture onLogout={onLogout} />
 
