@@ -46,6 +46,8 @@ const Dashboard: React.FC<DashboardProps> = ({
   const [recentMeals, setRecentMeals] = useState<Meal[]>([]);
   const [selectedNutrientForProgressBar, setSelectedNutrientForProgressBar] = useState<SelectableNutrient>('calories');
   const [isLoadingGameStats, setIsLoadingGameStats] = useState(false); // Start with false since data should be preloaded
+  const [isLoadingRecentMeals, setIsLoadingRecentMeals] = useState(false);
+  const [recentMealsError, setRecentMealsError] = useState<string | null>(null);
 
   // Only fetch game stats if we don't have any data
   useEffect(() => {
@@ -90,6 +92,57 @@ const Dashboard: React.FC<DashboardProps> = ({
     fetchGameStats();
   }, [gameStats, updateGameStats]);
 
+  // Transform backend meal data to frontend Meal interface
+  const transformBackendMealToFrontend = (backendMeal: any): Meal => {
+    return {
+      id: backendMeal._id,
+      name: backendMeal.name,
+      date: backendMeal.createdAt, // Use createdAt as the date
+      calories: backendMeal.calories,
+      protein: backendMeal.protein,
+      carbs: backendMeal.carbs,
+      fats: backendMeal.fat // Note: backend uses 'fat', frontend uses 'fats'
+    };
+  };
+
+  // Fetch recent meals from backend
+  const fetchRecentMeals = async () => {
+    setIsLoadingRecentMeals(true);
+    setRecentMealsError(null);
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch('http://localhost:5050/nutrition/meals/recent', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch recent meals: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      const transformedMeals = data.meals.map(transformBackendMealToFrontend);
+      setRecentMeals(transformedMeals);
+    } catch (error) {
+      console.error('Error fetching recent meals:', error);
+      setRecentMealsError(error instanceof Error ? error.message : 'Failed to load recent meals');
+    } finally {
+      setIsLoadingRecentMeals(false);
+    }
+  };
+
+  // Fetch recent meals on component mount
+  useEffect(() => {
+    fetchRecentMeals();
+  }, []);
+
   const handleOpenAddMealModal = () => {
     setShowAddMealModal(true);
   };
@@ -98,20 +151,30 @@ const Dashboard: React.FC<DashboardProps> = ({
     setShowAddMealModal(false);
   };
 
-  const handleLogMealAndRefreshRecent = (newLoggedMealData: LoggedMealData) => {
-    logMeal(newLoggedMealData);
+  const handleLogMealAndRefreshRecent = async (newLoggedMealData: LoggedMealData) => {
+    try {
+      // Close the modal immediately for better UX
+      handleCloseAddMealModal();
+      
+      // First, log the meal to the parent component (for nutrition tracking) and WAIT for it to complete
+      await logMeal(newLoggedMealData);
+      
+      // Now re-fetch recent meals from backend to get the most up-to-date data
+      // This ensures the newly added meal appears in the list with correct backend ID
+      await fetchRecentMeals();
+    } catch (error) {
+      console.error('Error refreshing recent meals after adding new meal:', error);
+      // If re-fetch fails, we can fall back to local state update
+      const newMeal: Meal = {
+        ...newLoggedMealData,
+        id: `temp-${Date.now()}`,
+      };
 
-    const newMeal: Meal = {
-      ...newLoggedMealData,
-      id: `temp-${Date.now()}`,
-    };
-
-    setRecentMeals(prevMeals => {
-      const updatedMeals = [newMeal, ...prevMeals];
-      return updatedMeals.slice(0, 10);
-    });
-
-    handleCloseAddMealModal();
+      setRecentMeals(prevMeals => {
+        const updatedMeals = [newMeal, ...prevMeals];
+        return updatedMeals.slice(0, 10);
+      });
+    }
   };
 
   const getProgressData = (nutrient: SelectableNutrient) => {
@@ -223,6 +286,8 @@ const Dashboard: React.FC<DashboardProps> = ({
           onAddMealClick={handleOpenAddMealModal}
           onOpenAddWaterModal={onOpenAddWaterModal}
           isWaterModalOpen={isWaterModalOpen}
+          isLoading={isLoadingRecentMeals}
+          error={recentMealsError}
         />
 
         {showAddMealModal && (

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import type { NutritionGoals as NutritionGoalsType } from '../utils/nutritionCalculator';
+
 import { 
   calculateRecommendedMetrics,
   feetInchesToCm,
@@ -92,16 +92,29 @@ const NutritionGoals: React.FC<NutritionGoalsProps> = ({ onLogin, onLogout }) =>
             const goals = data.nutritionGoals;
             
             setSex(goals.sex);
-            setHeightFeet(goals.height);
+            // Handle both old and new field names for backwards compatibility
+            setHeightFeet(goals.heightFeet || goals.height);
             setHeightInches(goals.heightInches);
-            setWeightLbs(goals.weight);
+            setWeightLbs(goals.weightLbs || goals.weight);
             setAge(goals.age);
             setActivityLevel(goals.activityLevel);
-            setCalorieGoal(goals.calorieGoal);
-            setWaterIntakeGoal(goals.waterIntakeGoal);
-            setProteinGoal(goals.proteinGoal);
-            setCarbsGoal(goals.carbsGoal);
-            setFatGoal(goals.fatGoal);
+            
+            // Handle both nested goals structure and flat structure
+            if (goals.goals) {
+              // New nested structure
+              setCalorieGoal(goals.goals.calories);
+              setWaterIntakeGoal(goals.goals.water);
+              setProteinGoal(goals.goals.protein);
+              setCarbsGoal(goals.goals.carbs);
+              setFatGoal(goals.goals.fats);
+            } else {
+              // Old flat structure (for backwards compatibility)
+              setCalorieGoal(goals.calorieGoal);
+              setWaterIntakeGoal(goals.waterIntakeGoal);
+              setProteinGoal(goals.proteinGoal);
+              setCarbsGoal(goals.carbsGoal);
+              setFatGoal(goals.fatGoal);
+            }
           }
         } catch (err) {
           console.error('Error fetching nutrition goals:', err);
@@ -139,27 +152,36 @@ const NutritionGoals: React.FC<NutritionGoalsProps> = ({ onLogin, onLogout }) =>
     }
 
     try {
-      const nutritionGoals: NutritionGoalsType = {
+      const nutritionGoals = {
         sex: sex as 'male' | 'female',
-        height: heightFeet as number,
+        heightFeet: heightFeet as number,
         heightInches: heightInches as number,
-        weight: weightLbs as number,
+        weightLbs: weightLbs as number,
         age: age as number,
         activityLevel: activityLevel as any,
-        calorieGoal: calorieGoal as number,
-        waterIntakeGoal: waterIntakeGoal as number,
-        proteinGoal: proteinGoal as number,
-        carbsGoal: carbsGoal as number,
-        fatGoal: fatGoal as number
+        goals: {
+          calories: calorieGoal as number,
+          protein: proteinGoal as number,
+          carbs: carbsGoal as number,
+          fats: fatGoal as number,
+          water: waterIntakeGoal as number
+        }
       };
 
       const endpoint = `http://localhost:5050/user/nutrition-goals`;
       const method = 'PUT';
 
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('No authentication token found. Please sign in again.');
+        return;
+      }
+
       const response = await fetch(endpoint, {
         method: method,
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify(nutritionGoals),
       });

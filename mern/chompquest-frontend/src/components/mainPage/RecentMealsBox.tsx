@@ -1,13 +1,7 @@
 import React from 'react';
 import MealListItem from './MealListItem';
+import type { Meal } from '../types';
 import './RecentMealsBox.css';
-
-interface Meal {
-  id: string;
-  name: string;
-  date: string;
-  calories: number;
-}
 
 interface RecentMealsBoxProps {
   meals: Meal[];
@@ -16,6 +10,9 @@ interface RecentMealsBoxProps {
   onOpenAddWaterModal: () => void;
   // NEW: Prop to know if the water modal is open (passed from App -> Dashboard -> here)
   isWaterModalOpen: boolean;
+  // NEW: Loading and error states for recent meals
+  isLoading?: boolean;
+  error?: string | null;
 }
 
 const RecentMealsBox: React.FC<RecentMealsBoxProps> = ({
@@ -24,6 +21,8 @@ const RecentMealsBox: React.FC<RecentMealsBoxProps> = ({
   // NEW: Destructure new props
   onOpenAddWaterModal,
   isWaterModalOpen,
+  isLoading = false,
+  error = null,
 }) => {
   return (
     <div className="recent-meals-box">
@@ -41,7 +40,14 @@ const RecentMealsBox: React.FC<RecentMealsBoxProps> = ({
       )}
 
       <div className="recent-meals-list">
-        {meals && meals.length > 0 ? (
+        {isLoading ? (
+          <div className="loading-spinner">
+            <p>Loading recent meals...</p>
+            {/* You can add a CSS spinner here if you have one */}
+          </div>
+        ) : error ? (
+          <p className="error-message">{error}</p>
+        ) : meals && meals.length > 0 ? (
           meals.map(meal => (
             <MealListItem key={meal.id} meal={meal} />
           ))
