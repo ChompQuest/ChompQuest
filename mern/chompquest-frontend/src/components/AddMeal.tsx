@@ -75,8 +75,21 @@ const AddMeal: React.FC<AddMealProps> = ({ onClose, onAddMeal }) => {
       }
     });
 
+    // Generate meal name and ensure it's not empty
+    const mealName = mealNameParts.join(', ') || 'Mixed Meal';
+    if (!mealName || mealName.trim() === '') {
+      alert('Unable to generate a valid meal name. Please try again.');
+      return;
+    }
+
+    // Validate that nutrition values are not negative (safety check)
+    if (totalCalories < 0 || totalProtein < 0 || totalCarbs < 0 || totalFats < 0) {
+      alert('Invalid nutrition data detected. Please contact support.');
+      return;
+    }
+
     const mealData: LoggedMealData = {
-      name: mealNameParts.join(', ') || 'Mixed Meal',
+      name: mealName.trim(),
       date: new Date().toISOString(),
       calories: totalCalories,
       protein: totalProtein,
@@ -90,18 +103,43 @@ const AddMeal: React.FC<AddMealProps> = ({ onClose, onAddMeal }) => {
   };
 
   const handleAddCustomMeal = () => {
-    if (!customFoodName || customCalories === '' || customProtein === '' || customCarbs === '' || customFats === '') {
-      alert('Please fill in all custom food fields.');
+    // Check if food name is provided and not just whitespace
+    if (!customFoodName || customFoodName.trim() === '') {
+      alert('Please provide a name for the food.');
+      return;
+    }
+
+    // Check if all nutrition fields are filled
+    if (customCalories === '' || customProtein === '' || customCarbs === '' || customFats === '') {
+      alert('Please fill in all nutrition fields (calories, protein, carbs, fats).');
+      return;
+    }
+
+    // Convert to numbers for validation
+    const calories = Number(customCalories);
+    const protein = Number(customProtein);
+    const carbs = Number(customCarbs);
+    const fats = Number(customFats);
+
+    // Check for negative values
+    if (calories < 0 || protein < 0 || carbs < 0 || fats < 0) {
+      alert('Nutrition values cannot be negative. Please enter valid positive numbers.');
+      return;
+    }
+
+    // Check for valid numbers (not NaN)
+    if (isNaN(calories) || isNaN(protein) || isNaN(carbs) || isNaN(fats)) {
+      alert('Please enter valid numbers for all nutrition fields.');
       return;
     }
 
     const customMealData: LoggedMealData = {
-      name: customFoodName,
+      name: customFoodName.trim(),
       date: new Date().toISOString(),
-      calories: Number(customCalories),
-      protein: Number(customProtein),
-      carbs: Number(customCarbs),
-      fats: Number(customFats),
+      calories: calories,
+      protein: protein,
+      carbs: carbs,
+      fats: fats,
     };
 
     onAddMeal(customMealData);
@@ -181,8 +219,13 @@ const AddMeal: React.FC<AddMealProps> = ({ onClose, onAddMeal }) => {
             Calories:
             <input
               type="number"
+              min="0"
+              step="1"
               value={customCalories}
-              onChange={(e) => setCustomCalories(Number(e.target.value) || '')}
+              onChange={(e) => {
+                const value = e.target.value;
+                setCustomCalories(value === '' ? '' : Number(value));
+              }}
               placeholder="e.g., 350"
             />
           </label>
@@ -190,8 +233,13 @@ const AddMeal: React.FC<AddMealProps> = ({ onClose, onAddMeal }) => {
             Protein (g):
             <input
               type="number"
+              min="0"
+              step="0.1"
               value={customProtein}
-              onChange={(e) => setCustomProtein(Number(e.target.value) || '')}
+              onChange={(e) => {
+                const value = e.target.value;
+                setCustomProtein(value === '' ? '' : Number(value));
+              }}
               placeholder="e.g., 25"
             />
           </label>
@@ -199,8 +247,13 @@ const AddMeal: React.FC<AddMealProps> = ({ onClose, onAddMeal }) => {
             Carbs (g):
             <input
               type="number"
+              min="0"
+              step="0.1"
               value={customCarbs}
-              onChange={(e) => setCustomCarbs(Number(e.target.value) || '')}
+              onChange={(e) => {
+                const value = e.target.value;
+                setCustomCarbs(value === '' ? '' : Number(value));
+              }}
               placeholder="e.g., 40"
             />
           </label>
@@ -208,14 +261,19 @@ const AddMeal: React.FC<AddMealProps> = ({ onClose, onAddMeal }) => {
             Fats (g):
             <input
               type="number"
+              min="0"
+              step="0.1"
               value={customFats}
-              onChange={(e) => setCustomFats(Number(e.target.value) || '')}
+              onChange={(e) => {
+                const value = e.target.value;
+                setCustomFats(value === '' ? '' : Number(value));
+              }}
               placeholder="e.g., 15"
             />
           </label>
         </div>
         <button onClick={handleAddCustomMeal} className="add-custom-meal-button"
-                disabled={!customFoodName || customCalories === '' || customProtein === '' || customCarbs === '' || customFats === ''}>
+                disabled={!customFoodName || customFoodName.trim() === '' || customCalories === '' || customProtein === '' || customCarbs === '' || customFats === '' || Number(customCalories) < 0 || Number(customProtein) < 0 || Number(customCarbs) < 0 || Number(customFats) < 0}>
           Add Custom Meal
         </button>
       </div>
