@@ -1,7 +1,10 @@
+// src/components/AdminDashboard.tsx (UPDATED)
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // Keep useNavigate here
 import './AdminDashboard.css';
 import type { LoggedMealData, NutrientData } from '../types';
 import ManageFoodItems from './ManageFoodItems';
+import AdminProfileMenu from './AdminProfileMenu'; // Import the AdminProfileMenu component
 
 export interface UserData {
   id: string;
@@ -91,6 +94,8 @@ const AdminDashboard: React.FC = () => {
     }
   });
 
+  const navigate = useNavigate(); // Initialize useNavigate hook
+
   useEffect(() => {
     try {
       localStorage.setItem(LOCAL_STORAGE_FOOD_LOOKUP_KEY, JSON.stringify(foodLookup));
@@ -164,6 +169,15 @@ const AdminDashboard: React.FC = () => {
     });
   };
 
+  const handleAdminLogout = () => {
+    console.log("Admin is performing logout actions and redirecting...");
+    localStorage.removeItem(LOCAL_STORAGE_USERS_KEY);
+    localStorage.removeItem(LOCAL_STORAGE_FOOD_LOOKUP_KEY);
+    localStorage.removeItem(LOCAL_STORAGE_MEALS_KEY);
+    navigate('/signin'); 
+  };
+
+
   const filteredUsers = users.filter(user =>
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
@@ -171,6 +185,8 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <div className="admin-dashboard-container">
+      <AdminProfileMenu onLogout={handleAdminLogout} /> 
+
       <div className="admin-header">
         <h1>ChompQuest Admin Panel</h1>
       </div>
@@ -301,5 +317,4 @@ const AdminDashboard: React.FC = () => {
     </div>
   );
 };
-
 export default AdminDashboard;
