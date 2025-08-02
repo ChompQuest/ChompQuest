@@ -54,7 +54,11 @@ const LOCAL_STORAGE_FOOD_LOOKUP_KEY = 'chompquest_food_lookup';
 const LOCAL_STORAGE_USERS_KEY = 'chompquest_users';
 const LOCAL_STORAGE_MEALS_KEY = 'chompquest_meals';
 
-const AdminDashboard: React.FC = () => {
+interface AdminDashboardProps {
+  onLogout: () => void;
+}
+
+const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   const [users, setUsers] = useState<UserData[]>(() => {
     try {
       const storedUsers = localStorage.getItem(LOCAL_STORAGE_USERS_KEY);
@@ -170,11 +174,15 @@ const AdminDashboard: React.FC = () => {
   };
 
   const handleAdminLogout = () => {
-    console.log("Admin is performing logout actions and redirecting...");
+    console.log("Admin is performing logout actions...");
+    
+    // Clear admin-specific data first
     localStorage.removeItem(LOCAL_STORAGE_USERS_KEY);
     localStorage.removeItem(LOCAL_STORAGE_FOOD_LOOKUP_KEY);
     localStorage.removeItem(LOCAL_STORAGE_MEALS_KEY);
-    navigate('/signin'); 
+    
+    // Use the main app logout function to properly clear auth state
+    onLogout();
   };
 
 

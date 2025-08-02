@@ -302,7 +302,7 @@ function App() {
             path="/admin/dashboard"
             element={
               isLoggedIn && isUserAdmin() ? (
-                <AdminDashboard />
+                <AdminDashboard onLogout={handleLogout} />
               ) : isLoggedIn ? (
                 <Navigate to="/dashboard" replace />
               ) : (
