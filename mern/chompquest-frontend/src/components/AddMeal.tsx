@@ -476,7 +476,6 @@ const AddMeal: React.FC<AddMealProps> = ({ onClose, onAddMeal }) => {
     'Black Pepper (1 tsp)': { calories: 5, protein: 0, carbs: 1, fats: 0 },
     'Cinnamon (1 tsp)': { calories: 6, protein: 0, carbs: 2, fats: 0 },
   };
-
   const handleSearch = () => {
     const lowerCaseSearch = searchTerm.toLowerCase();
     const filteredResults = Object.keys(nutrientLookup).filter(item =>
@@ -537,7 +536,8 @@ const AddMeal: React.FC<AddMealProps> = ({ onClose, onAddMeal }) => {
     }
 
     const mealData: LoggedMealData = {
-      name: mealName.trim(),
+      id: Date.now().toString(),
+      name: selectedItems.join(', ') || 'Mixed Meal',
       date: new Date().toISOString(),
       calories: totalCalories,
       protein: totalProtein,
@@ -582,6 +582,7 @@ const AddMeal: React.FC<AddMealProps> = ({ onClose, onAddMeal }) => {
     }
 
     const customMealData: LoggedMealData = {
+      id: Date.now().toString(),
       name: customFoodName.trim(),
       date: new Date().toISOString(),
       calories: calories,

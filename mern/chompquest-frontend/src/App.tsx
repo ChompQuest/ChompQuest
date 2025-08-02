@@ -7,6 +7,9 @@ import SetNutritionGoals from './components/SetNutritionGoals';
 import Dashboard from './components/mainPage/Dashboard';
 import type { NutrientData, LoggedMealData } from './components/types';
 import AddWaterModal from './components/mainPage/AddCustomWaterModal';
+
+import AdminDashboard from './components/admin/AdminDashboard';
+
 import './App.css';
 
 interface GameStats {
@@ -271,6 +274,9 @@ function App() {
                 : <Navigate to="/signin" replace />
             }
           />
+
+          {/* Admin test page - only accessible if user is logged in and is an admin */}
+          <Route path="/admin-test" element={<AdminDashboard />} />
 
           {/* catch all route for any issues */}
           <Route path="*" element={<Navigate to="/" replace />} />
