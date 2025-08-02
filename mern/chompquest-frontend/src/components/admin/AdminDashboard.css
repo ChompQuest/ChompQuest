@@ -15,6 +15,7 @@ body {
   display: flex;
   flex-direction: column;
   min-height: calc(100vh - 80px);
+  margin: 40px auto;
 }
 
 .admin-header {
@@ -47,7 +48,7 @@ body {
 
 .error-message {
   color: #dc3545;
-  background-color: #f8d7da;
+  background-color: #f8d7da;  
   border: 1px solid #f5c6cb;
   padding: 12px;
   border-radius: 8px;
@@ -134,6 +135,16 @@ table th, table td {
   padding: 12px 15px;
   text-align: left;
   border-bottom: 1px solid #ddd;
+  vertical-align: middle;
+}
+
+.action-column {
+  text-align: center;
+}
+
+.action-column .action-button {
+  margin-top: 20px;
+  margin-bottom: 5px;
 }
 
 table th {
@@ -155,17 +166,24 @@ table tbody tr:last-child td {
   padding: 10px 18px;
   border: none;
   border-radius: 5px;
-  cursor: pointer;
   font-size: 0.95em;
-  font-weight: 500;
-  transition: background-color 0.3s ease, transform 0.1s ease;
-  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
 .action-button:disabled {
   background-color: #cccccc;
   cursor: not-allowed;
-  opacity: 0.7;
+}
+
+.action-button.primary-button {
+  background-color: #007bff;
+  color: white;
+}
+
+.action-button.primary-button:hover:not(:disabled) {
+  background-color: #0056b3;
+  transform: translateY(-1px);
 }
 
 .delete-button {
@@ -188,49 +206,39 @@ table tbody tr:last-child td {
   transform: translateY(-1px);
 }
 
-.primary-button {
-  background-color: #28a745;
-  color: white;
-  padding: 14px 25px;
+.toggle-button {
+  margin-bottom: 25px;
+  padding: 12px 25px;
   font-size: 1.1em;
+  font-weight: bold;
+  background-color: #0056b3;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-button:hover {
+  background-color: #004085;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.toggle-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.food-item-management-section {
   margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.manage-foods-container {
   width: 100%;
-  border-radius: 5px;
-}
-
-.primary-button:hover:not(:disabled) {
-  background-color: #218838;
-  transform: translateY(-1px);
-}
-
-.meal-input-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 18px;
-  margin-bottom: 20px;
-}
-
-.meal-input-grid label {
-  display: flex;
-  flex-direction: column;
-  font-weight: 600;
-  color: #444;
-  font-size: 0.95em;
-}
-
-.meal-input-grid input {
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  font-size: 1em;
-  margin-top: 5px;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.meal-input-grid input:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-  outline: none;
 }
 
 .admin-footer {
@@ -251,10 +259,6 @@ table tbody tr:last-child td {
   .admin-box {
     max-width: 100%;
     min-width: unset;
-  }
-
-  .meal-input-grid {
-    grid-template-columns: 1fr;
   }
 }
 

@@ -1,9 +1,6 @@
-// src/components/admin/AdminDashboard.tsx
-
 import React, { useState, useEffect } from 'react';
 import './AdminDashboard.css';
 import type { LoggedMealData, NutrientData } from '../types';
-import AddMeal from '../AddMeal';
 import ManageFoodItems from './ManageFoodItems';
 
 export interface UserData {
@@ -13,8 +10,31 @@ export interface UserData {
   registrationDate: string;
 }
 
-//connect to backend API to fetch users
 const INITIAL_USERS: UserData[] = [
+  {
+    id: 'user-101',
+    name: 'Alice Johnson',
+    email: 'alice.j@example.com',
+    registrationDate: '2025-07-15T10:00:00Z',
+  },
+  {
+    id: 'user-102',
+    name: 'Bob Smith',
+    email: 'bob.s@example.com',
+    registrationDate: '2025-06-20T14:30:00Z',
+  },
+  {
+    id: 'user-103',
+    name: 'Charlie Brown',
+    email: 'charlie.b@example.com',
+    registrationDate: '2025-05-10T08:15:00Z',
+  },
+  {
+    id: 'user-104',
+    name: 'Diana Prince',
+    email: 'diana.p@example.com',
+    registrationDate: '2025-07-01T11:00:00Z',
+  },
 ];
 
 const INITIAL_NUTRIENT_LOOKUP: Record<string, NutrientData> = {
@@ -27,23 +47,24 @@ const INITIAL_NUTRIENT_LOOKUP: Record<string, NutrientData> = {
   'Brown Rice (cooked)': { calories: 112, protein: 2, carbs: 23, fats: 1 },
 };
 
-// here i define localstorage but idk how to get it to append to list 
 const LOCAL_STORAGE_FOOD_LOOKUP_KEY = 'chompquest_food_lookup';
 const LOCAL_STORAGE_USERS_KEY = 'chompquest_users';
-const LOCAL_STORAGE_MEALS_KEY = 'chompquest_meals'; 
+const LOCAL_STORAGE_MEALS_KEY = 'chompquest_meals';
 
 const AdminDashboard: React.FC = () => {
   const [users, setUsers] = useState<UserData[]>(() => {
     try {
       const storedUsers = localStorage.getItem(LOCAL_STORAGE_USERS_KEY);
-      return storedUsers ? JSON.parse(storedUsers) as UserData[] : INITIAL_USERS;
+      if (storedUsers && storedUsers !== '[]') {
+        return JSON.parse(storedUsers) as UserData[];
+      }
+      return INITIAL_USERS;
     } catch (e) {
       console.error("Failed to load users from localStorage", e);
       return INITIAL_USERS;
     }
   });
 
-  // INITIALIZE MEALS STATE FROM LOCALSTORAGE
   const [meals, setMeals] = useState<LoggedMealData[]>(() => {
     try {
       const storedMeals = localStorage.getItem(LOCAL_STORAGE_MEALS_KEY);
@@ -57,7 +78,8 @@ const AdminDashboard: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showAddMealModal, setShowAddMealModal] = useState(false);
+
+  const [showFoodItemManagement, setShowFoodItemManagement] = useState(false);
 
   const [foodLookup, setFoodLookup] = useState<Record<string, NutrientData>>(() => {
     try {
@@ -69,9 +91,6 @@ const AdminDashboard: React.FC = () => {
     }
   });
 
-  const [showManageFoodsModal, setShowManageFoodsModal] = useState(false);
-
-  // useEffect to save foodLookup to localStorage whenever it changes
   useEffect(() => {
     try {
       localStorage.setItem(LOCAL_STORAGE_FOOD_LOOKUP_KEY, JSON.stringify(foodLookup));
@@ -81,7 +100,6 @@ const AdminDashboard: React.FC = () => {
     }
   }, [foodLookup]);
 
-  // useEffect to save users to localStorage whenever it changes
   useEffect(() => {
     try {
       localStorage.setItem(LOCAL_STORAGE_USERS_KEY, JSON.stringify(users));
@@ -91,7 +109,6 @@ const AdminDashboard: React.FC = () => {
     }
   }, [users]);
 
-  // NEW useEffect to save meals to localStorage whenever it changes
   useEffect(() => {
     try {
       localStorage.setItem(LOCAL_STORAGE_MEALS_KEY, JSON.stringify(meals));
@@ -100,7 +117,6 @@ const AdminDashboard: React.FC = () => {
       console.error("Failed to save meals to localStorage", e);
     }
   }, [meals]);
-
 
   const handleDeleteUser = (userId: string) => {
     setLoading(true);
@@ -117,7 +133,7 @@ const AdminDashboard: React.FC = () => {
     setError(null);
     setTimeout(() => {
       const storedUsers = localStorage.getItem(LOCAL_STORAGE_USERS_KEY);
-      if (storedUsers) {
+      if (storedUsers && storedUsers !== '[]') {
         setUsers(JSON.parse(storedUsers) as UserData[]);
       } else {
         setUsers(INITIAL_USERS);
@@ -127,18 +143,19 @@ const AdminDashboard: React.FC = () => {
     }, 500);
   };
 
-  const handleAddMeal = (newMeal: LoggedMealData) => {
-    setMeals(prevMeals => [...prevMeals, newMeal]);
-    console.log('Meal added:', newMeal);
+  const handleAddFoodItem = (foodName: string, nutrients: NutrientData) => {
+    setFoodLookup((prevLookup: Record<string, NutrientData>) => {
+      if (prevLookup[foodName]) {
+        alert('A food item with this name already exists. Please choose a different name.');
+        return prevLookup;
+      }
+      return {
+        ...prevLookup,
+        [foodName]: nutrients
+      };
+    });
   };
 
-  const handleAddFoodItem = (foodName: string, nutrients: NutrientData) => {
-    setFoodLookup((prevLookup: Record<string, NutrientData>) => ({
-      ...prevLookup,
-      [foodName]: nutrients
-    }));
-  };
-  
   const handleDeleteFoodItem = (foodName: string) => {
     setFoodLookup((prevLookup: Record<string, NutrientData>) => {
       const newLookup = { ...prevLookup };
@@ -183,7 +200,7 @@ const AdminDashboard: React.FC = () => {
                   <th>Name</th>
                   <th>Email</th>
                   <th>Registration Date</th>
-                  <th>Actions</th>
+                  <th className="action-column">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -194,7 +211,7 @@ const AdminDashboard: React.FC = () => {
                       <td>{user.name}</td>
                       <td>{user.email}</td>
                       <td>{new Date(user.registrationDate).toLocaleDateString()}</td>
-                      <td>
+                      <td className="action-column">
                         <button
                           onClick={() => handleDeleteUser(user.id)}
                           className="action-button delete-button"
@@ -216,73 +233,67 @@ const AdminDashboard: React.FC = () => {
         </div>
 
         <div className="admin-box">
-          <h2>Meal & Food Item Management</h2>
-          <p>Add new meals to the tracker, or manage the list of pre-defined food items.</p>
+          <h2>Food Item Management</h2>
+          <p>This section allows you to manage pre-defined food items.</p>
 
-          <button onClick={() => setShowAddMealModal(true)} className="primary-button">
-            Add New Meal Entry
+          <button
+            onClick={() => setShowFoodItemManagement(!showFoodItemManagement)}
+            className="action-button primary-button toggle-button"
+          >
+            {showFoodItemManagement ? 'Hide Add Food Item Form' : 'Show Add Food Item Form'}
           </button>
 
-          <button onClick={() => setShowManageFoodsModal(true)} className="action-button refresh-button" style={{ marginTop: '15px' }}>
-            Manage Pre-defined Food Items
-          </button>
+          {showFoodItemManagement && (
+            <div className="food-item-management-section">
+                <ManageFoodItems
+                    currentLookup={foodLookup}
+                    onAdd={handleAddFoodItem}
+                    onClose={() => setShowFoodItemManagement(false)}
+                />
+            </div>
+          )}
 
-          <h3 style={{ marginTop: '30px', marginBottom: '15px' }}>Recent Meal Entries:</h3>
+          <h3 style={{ marginTop: '30px', marginBottom: '15px' }}>Existing Pre-defined Food Items:</h3>
+          <p>Below is the list of all food items available for selection and tracking.</p>
           <div className="table-container" style={{ maxHeight: '250px' }}>
               <table>
                   <thead>
                       <tr>
-                          <th>Name</th>
-                          <th>Calories</th>
-                          <th>Date</th>
+                          <th>Food Name</th>
+                          <th>Cal</th>
+                          <th>Protein</th>
+                          <th>Carbs</th>
+                          <th>Fats</th>
+                          <th className="action-column">Actions</th>
                       </tr>
                   </thead>
                   <tbody>
-                      {/* Display up to 5 most recent meals, newest first */}
-                      {meals.slice(-5).reverse().map((meal) => (
-                          <tr key={meal.id}>
-                              <td>{meal.name}</td>
-                              <td>{meal.calories}</td>
-                              <td>{new Date(meal.date).toLocaleDateString()}</td>
-                          </tr>
-                      ))}
-                      {meals.length === 0 && (
-                          <tr><td colSpan={3} style={{ textAlign: 'center' }}>No meals added yet.</td></tr>
+                      {Object.keys(foodLookup).length === 0 ? (
+                          <tr><td colSpan={6} style={{ textAlign: 'center' }}>No pre-defined food items yet.</td></tr>
+                      ) : (
+                          Object.entries(foodLookup).map(([name, data]) => (
+                              <tr key={name}>
+                                  <td>{name}</td>
+                                  <td>{data.calories}</td>
+                                  <td>{data.protein}</td>
+                                  <td>{data.carbs}</td>
+                                  <td>{data.fats}</td>
+                                  <td className="action-column">
+                                      <button
+                                          onClick={() => handleDeleteFoodItem(name)}
+                                          className="action-button delete-button"
+                                      >
+                                          Delete
+                                      </button>
+                                  </td>
+                              </tr>
+                          ))
                       )}
                   </tbody>
               </table>
           </div>
         </div>
       </div>
-
-      {showAddMealModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h2>Add New Meal Entry</h2>
-            <AddMeal
-              onClose={() => setShowAddMealModal(false)}
-              onAddMeal={handleAddMeal}
-              nutrientLookup={foodLookup}
-            />
-            <button onClick={() => setShowAddMealModal(false)} className="action-button delete-button" style={{ marginTop: '20px' }}>Close</button>
-          </div>
-        </div>
-      )}
-
-      {showManageFoodsModal && (
-          <div className="modal-overlay">
-              <div className="modal-content">
-                  <h2>Manage Pre-defined Food Items</h2>
-                  <ManageFoodItems
-                      currentLookup={foodLookup}
-                      onAdd={handleAddFoodItem}
-                      onDelete={handleDeleteFoodItem}
-                      onClose={() => setShowManageFoodsModal(false)}
-                  />
-                  <button onClick={() => setShowManageFoodsModal(false)} className="action-button delete-button" style={{ marginTop: '20px' }}>Close</button>
-              </div>
-          </div>
-      )}
 
       <footer className="admin-footer">
         <p>&copy; 2025 ChompQuest. All rights reserved.</p>
