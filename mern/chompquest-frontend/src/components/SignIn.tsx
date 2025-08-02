@@ -55,6 +55,7 @@ const SignIn: React.FC <SignInProps> = ({onLogin}) => {
         localStorage.setItem('user', JSON.stringify({
           userId: data.userId,
           username: data.username,
+          role: data.user?.role || 'member', // Store user role
           isLoggedIn: true
         }));
         
@@ -114,7 +115,13 @@ const SignIn: React.FC <SignInProps> = ({onLogin}) => {
         
         // Add a longer delay to show success message and ensure all data is loaded
         setTimeout(() => {
-          navigate('/dashboard');
+          // Check if user is admin and redirect accordingly
+          const userRole = data.user?.role || 'member';
+          if (userRole === 'admin') {
+            navigate('/admin/dashboard');
+          } else {
+            navigate('/dashboard');
+          }
         }, 3000); // 3 seconds delay
       }
       else {

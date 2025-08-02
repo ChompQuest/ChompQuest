@@ -3,6 +3,7 @@ import cors from "cors";
 import users from "./routes/user.js";
 import records from "./routes/record.js";
 import nutrition from "./routes/nutrition.js";
+import admin from "./routes/admin.js";
 import { connectToDatabase } from "./db/connection.js";
 
 const PORT = process.env.PORT || 5050;
@@ -13,6 +14,7 @@ app.use(express.json());
 app.use("/user", users);
 app.use("/record", records);
 app.use("/nutrition", nutrition);
+app.use("/admin", admin);
 
 // start the Express server
 

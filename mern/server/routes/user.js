@@ -88,6 +88,7 @@ router.post("/signup", async (req, res) => {
       username,
       email,
       password: hashedPassword, // Store hashed password
+      role: 'member', // Default role for regular users
       createdAt: new Date(),
       goals: [],
       progress: {},
@@ -176,7 +177,7 @@ router.post("/login", async (req, res) => {
       user: {
         id: user._id.toString(),
         username: user.username,
-        role: 'member'
+        role: user.role || 'member' // Use user's actual role from database
       }
     };
 
@@ -196,7 +197,8 @@ router.post("/login", async (req, res) => {
           user: {
             id: user._id,
             username: user.username,
-            email: user.email
+            email: user.email,
+            role: user.role || 'member' // Include role in response
           },
           game_stats: user.game_stats || {
             dailyStreak: 0,

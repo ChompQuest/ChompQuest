@@ -29,6 +29,16 @@ function App() {
     return false;
   });
 
+  // Helper function to check if current user is admin
+  const isUserAdmin = () => {
+    const user = localStorage.getItem('user');
+    if (user) {
+      const userData = JSON.parse(user);
+      return userData.role === 'admin';
+    }
+    return false;
+  };
+
   const [gameStats, setGameStats] = useState<GameStats>(() => {
     // Try to get game stats from localStorage on app start
     const storedStats = localStorage.getItem('gameStats');
@@ -223,7 +233,13 @@ function App() {
         <Routes>
           <Route
             path="/signin"
-            element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <SignIn onLogin={handleLogin} />}
+            element={
+              isLoggedIn ? (
+                isUserAdmin() ? <Navigate to="/admin/dashboard" replace /> : <Navigate to="/dashboard" replace />
+              ) : (
+                <SignIn onLogin={handleLogin} />
+              )
+            }
           />
           <Route
             path="/signup"
@@ -253,10 +269,16 @@ function App() {
             }
           />
 
-          {/* if they are logged in -> dashboard, if not -> login */}
+          {/* if they are logged in -> appropriate dashboard, if not -> login */}
           <Route
             path="/"
-            element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <Navigate to="/signin" replace />}
+            element={
+              isLoggedIn ? (
+                isUserAdmin() ? <Navigate to="/admin/dashboard" replace /> : <Navigate to="/dashboard" replace />
+              ) : (
+                <Navigate to="/signin" replace />
+              )
+            }
           />
 
           {/* set nutrition goals route - for new users after signup */}
@@ -275,8 +297,25 @@ function App() {
             }
           />
 
-          {/* Admin test page - only accessible if user is logged in and is an admin */}
-          <Route path="/admin-test" element={<AdminDashboard />} />
+          {/* Admin dashboard - only accessible if user is logged in and is an admin */}
+          <Route
+            path="/admin/dashboard"
+            element={
+              isLoggedIn && isUserAdmin() ? (
+                <AdminDashboard />
+              ) : isLoggedIn ? (
+                <Navigate to="/dashboard" replace />
+              ) : (
+                <Navigate to="/signin" replace />
+              )
+            }
+          />
+
+          {/* Legacy admin test route - redirect to new admin dashboard */}
+          <Route 
+            path="/admin-test" 
+            element={<Navigate to="/admin/dashboard" replace />} 
+          />
 
           {/* catch all route for any issues */}
           <Route path="*" element={<Navigate to="/" replace />} />
