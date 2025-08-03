@@ -7,23 +7,48 @@ const router = express.Router();
 
 // ===== USER MANAGEMENT ENDPOINTS =====
 
-// Get all users (admin only)
+// Get all users (admin only) - with optional filtering for members only and search
 router.get("/users", adminMiddleware, async (req, res) => {
   try {
     const db = getDb();
-    const users = await db.collection("users")
-      .find({}, { 
+    const { role, search, limit } = req.query;
+    
+    // Build query filter
+    let filter = {};
+    
+    // Filter by role if specified (e.g., only members)
+    if (role) {
+      filter.role = role;
+    }
+    
+    // Add search functionality
+    if (search) {
+      filter.$or = [
+        { username: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    let query = db.collection("users")
+      .find(filter, { 
         projection: { 
           password: 0 // Don't include passwords in response
         } 
       })
-      .sort({ createdAt: -1 })
-      .toArray();
+      .sort({ createdAt: -1 });
+    
+    // Apply limit if specified
+    if (limit) {
+      query = query.limit(parseInt(limit));
+    }
+    
+    const users = await query.toArray();
 
     res.status(200).json({
       message: "Users retrieved successfully",
       users: users.map(user => ({
         id: user._id.toString(),
+        name: user.username, // Map username to name for frontend compatibility
         username: user.username,
         email: user.email,
         role: user.role || 'member',
@@ -114,6 +139,50 @@ router.put("/users/:id/role", adminMiddleware, async (req, res) => {
   } catch (error) {
     console.error("Error updating user role:", error);
     res.status(500).json({ message: "Error updating user role" });
+  }
+});
+
+// Update user game stats (admin only)
+router.put("/users/:id/stats", adminMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { points, streak } = req.body;
+
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid user ID" });
+    }
+
+    if (typeof points !== 'number' || typeof streak !== 'number') {
+      return res.status(400).json({ message: "Points and streak must be numbers" });
+    }
+
+    if (points < 0 || streak < 0) {
+      return res.status(400).json({ message: "Points and streak cannot be negative" });
+    }
+
+    const db = getDb();
+    const result = await db.collection("users").updateOne(
+      { _id: new ObjectId(id) },
+      { 
+        $set: {
+          "game_stats.pointTotal": points,
+          "game_stats.dailyStreak": streak
+        }
+      }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+      message: "User stats updated successfully",
+      userId: id,
+      newStats: { points, streak }
+    });
+  } catch (error) {
+    console.error("Error updating user stats:", error);
+    res.status(500).json({ message: "Error updating user stats" });
   }
 });
 

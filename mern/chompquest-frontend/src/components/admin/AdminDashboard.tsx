@@ -1,44 +1,25 @@
 // src/components/AdminDashboard.tsx (UPDATED)
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom'; // Keep useNavigate here
 import './AdminDashboard.css';
-import type { LoggedMealData, NutrientData } from '../types';
+import type { NutrientData } from '../types';
 import ManageFoodItems from './ManageFoodItems';
 import AdminProfileMenu from './AdminProfileMenu'; // Import the AdminProfileMenu component
+import DeleteUserModal from './DeleteUserModal';
+import EditUserModal from './EditUserModal';
 
 export interface UserData {
   id: string;
   name: string;
+  username: string;
   email: string;
+  role: string;
   registrationDate: string;
+  game_stats: {
+    dailyStreak: number;
+    pointTotal: number;
+    currentRank: number;
+  };
 }
-
-const INITIAL_USERS: UserData[] = [
-  {
-    id: 'user-101',
-    name: 'Alice Johnson',
-    email: 'alice.j@example.com',
-    registrationDate: '2025-07-15T10:00:00Z',
-  },
-  {
-    id: 'user-102',
-    name: 'Bob Smith',
-    email: 'bob.s@example.com',
-    registrationDate: '2025-06-20T14:30:00Z',
-  },
-  {
-    id: 'user-103',
-    name: 'Charlie Brown',
-    email: 'charlie.b@example.com',
-    registrationDate: '2025-05-10T08:15:00Z',
-  },
-  {
-    id: 'user-104',
-    name: 'Diana Prince',
-    email: 'diana.p@example.com',
-    registrationDate: '2025-07-01T11:00:00Z',
-  },
-];
 
 const INITIAL_NUTRIENT_LOOKUP: Record<string, NutrientData> = {
   'Apple (100g)': { calories: 52, protein: 0, carbs: 14, fats: 0 },
@@ -51,7 +32,6 @@ const INITIAL_NUTRIENT_LOOKUP: Record<string, NutrientData> = {
 };
 
 const LOCAL_STORAGE_FOOD_LOOKUP_KEY = 'chompquest_food_lookup';
-const LOCAL_STORAGE_USERS_KEY = 'chompquest_users';
 const LOCAL_STORAGE_MEALS_KEY = 'chompquest_meals';
 
 interface AdminDashboardProps {
@@ -59,32 +39,15 @@ interface AdminDashboardProps {
 }
 
 const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
-  const [users, setUsers] = useState<UserData[]>(() => {
-    try {
-      const storedUsers = localStorage.getItem(LOCAL_STORAGE_USERS_KEY);
-      if (storedUsers && storedUsers !== '[]') {
-        return JSON.parse(storedUsers) as UserData[];
-      }
-      return INITIAL_USERS;
-    } catch (e) {
-      console.error("Failed to load users from localStorage", e);
-      return INITIAL_USERS;
-    }
-  });
-
-  const [meals, setMeals] = useState<LoggedMealData[]>(() => {
-    try {
-      const storedMeals = localStorage.getItem(LOCAL_STORAGE_MEALS_KEY);
-      return storedMeals ? JSON.parse(storedMeals) as LoggedMealData[] : [];
-    } catch (e) {
-      console.error("Failed to load meals from localStorage", e);
-      return [];
-    }
-  });
-
+  const [users, setUsers] = useState<UserData[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [message, setMessage] = useState<{text: string, type: 'success' | 'error'} | null>(null);
+  const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   const [showFoodItemManagement, setShowFoodItemManagement] = useState(false);
 
@@ -98,71 +61,210 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     }
   });
 
-  const navigate = useNavigate(); // Initialize useNavigate hook
+  // Fetch member users from API
+  const fetchMemberUsers = async (searchQuery = '', limit: number | null = null) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      // Build query parameters
+      const params = new URLSearchParams();
+      params.append('role', 'member'); // Only fetch member users
+      if (searchQuery) {
+        params.append('search', searchQuery);
+      }
+      if (limit) {
+        params.append('limit', limit.toString());
+      }
+
+      const response = await fetch(`http://localhost:5050/admin/users?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 403) {
+          throw new Error('Access denied. Admin privileges required.');
+        }
+        throw new Error(`Failed to fetch users: ${response.status}`);
+      }
+
+      const data = await response.json();
+      // Filter out admin users on frontend as extra safety
+      const memberUsers = (data.users || []).filter((user: any) => user.role !== 'admin');
+      return memberUsers;
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      setError(error instanceof Error ? error.message : 'Failed to load users');
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load initial 4 latest member users
+  useEffect(() => {
+    const loadInitialUsers = async () => {
+      const initialUsers = await fetchMemberUsers('', 4);
+      setUsers(initialUsers);
+    };
+    
+    loadInitialUsers();
+  }, []);
+
+  // Handle search with debouncing
+  useEffect(() => {
+    if (!searchTerm.trim()) {
+      // If search is empty, show initial 4 users
+      const loadInitialUsers = async () => {
+        const initialUsers = await fetchMemberUsers('', 4);
+        setUsers(initialUsers);
+      };
+      loadInitialUsers();
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    const searchTimeout = setTimeout(async () => {
+      const searchResults = await fetchMemberUsers(searchTerm);
+      setUsers(searchResults);
+      setIsSearching(false);
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(searchTimeout);
+  }, [searchTerm]);
+
+  // Show message for 5 seconds
+  useEffect(() => {
+    if (message) {
+      const timer = setTimeout(() => {
+        setMessage(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
+
+  // Delete user function
+  const handleDeleteUser = async (user: UserData) => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`http://localhost:5050/admin/users/${user.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete user');
+      }
+
+      setMessage({ text: `User ${user.username} has been successfully deleted.`, type: 'success' });
+      
+      // Refresh the user list
+      if (searchTerm) {
+        const updatedUsers = await fetchMemberUsers(searchTerm);
+        setUsers(updatedUsers);
+      } else {
+        const updatedUsers = await fetchMemberUsers('', 4);
+        setUsers(updatedUsers);
+      }
+      
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      setMessage({ text: `Failed to delete user ${user.username}. Please try again.`, type: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Edit user stats function
+  const handleEditUserStats = async (userId: string, newPoints: number, newStreak: number) => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`http://localhost:5050/admin/users/${userId}/stats`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          points: newPoints,
+          streak: newStreak
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update user stats');
+      }
+
+      const updatedUser = selectedUser?.username || 'User';
+      setMessage({ text: `${updatedUser}'s stats have been successfully updated.`, type: 'success' });
+      
+      // Refresh the user list
+      if (searchTerm) {
+        const updatedUsers = await fetchMemberUsers(searchTerm);
+        setUsers(updatedUsers);
+      } else {
+        const updatedUsers = await fetchMemberUsers('', 4);
+        setUsers(updatedUsers);
+      }
+      
+    } catch (error) {
+      console.error('Error updating user stats:', error);
+      const userName = selectedUser?.username || 'User';
+      setMessage({ text: `Failed to update ${userName}'s stats. Please try again.`, type: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const openDeleteModal = (user: UserData) => {
+    setSelectedUser(user);
+    setShowDeleteModal(true);
+  };
+
+  const openEditModal = (user: UserData) => {
+    setSelectedUser(user);
+    setShowEditModal(true);
+  };
+
+  const closeModals = () => {
+    setShowDeleteModal(false);
+    setShowEditModal(false);
+    setSelectedUser(null);
+  };
 
   useEffect(() => {
     try {
       localStorage.setItem(LOCAL_STORAGE_FOOD_LOOKUP_KEY, JSON.stringify(foodLookup));
-      console.log("Food lookup saved to localStorage.");
     } catch (e) {
       console.error("Failed to save food lookup to localStorage", e);
     }
   }, [foodLookup]);
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(LOCAL_STORAGE_USERS_KEY, JSON.stringify(users));
-      console.log("Users saved to localStorage.");
-    } catch (e) {
-      console.error("Failed to save users to localStorage", e);
+  const addFoodItem = (name: string, data: NutrientData) => {
+    if (foodLookup[name]) {
+      alert("Food item already exists!");
+      return;
     }
-  }, [users]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(LOCAL_STORAGE_MEALS_KEY, JSON.stringify(meals));
-      console.log("Meals saved to localStorage.");
-    } catch (e) {
-      console.error("Failed to save meals to localStorage", e);
-    }
-  }, [meals]);
-
-  const handleDeleteUser = (userId: string) => {
-    setLoading(true);
-    setError(null);
-    setTimeout(() => {
-      setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
-      setLoading(false);
-      alert(`User ${userId} deleted.`);
-    }, 500);
-  };
-
-  const handleRefreshUsers = () => {
-    setLoading(true);
-    setError(null);
-    setTimeout(() => {
-      const storedUsers = localStorage.getItem(LOCAL_STORAGE_USERS_KEY);
-      if (storedUsers && storedUsers !== '[]') {
-        setUsers(JSON.parse(storedUsers) as UserData[]);
-      } else {
-        setUsers(INITIAL_USERS);
-      }
-      console.log("Users refreshed.");
-      setLoading(false);
-    }, 500);
-  };
-
-  const handleAddFoodItem = (foodName: string, nutrients: NutrientData) => {
-    setFoodLookup((prevLookup: Record<string, NutrientData>) => {
-      if (prevLookup[foodName]) {
-        alert('A food item with this name already exists. Please choose a different name.');
-        return prevLookup;
-      }
-      return {
-        ...prevLookup,
-        [foodName]: nutrients
-      };
-    });
+    setFoodLookup((prevLookup: Record<string, NutrientData>) => ({
+      ...prevLookup,
+      [name]: data,
+    }));
   };
 
   const handleDeleteFoodItem = (foodName: string) => {
@@ -177,19 +279,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     console.log("Admin is performing logout actions...");
     
     // Clear admin-specific data first
-    localStorage.removeItem(LOCAL_STORAGE_USERS_KEY);
     localStorage.removeItem(LOCAL_STORAGE_FOOD_LOOKUP_KEY);
     localStorage.removeItem(LOCAL_STORAGE_MEALS_KEY);
     
     // Use the main app logout function to properly clear auth state
     onLogout();
   };
-
-
-  const filteredUsers = users.filter(user =>
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   return (
     <div className="admin-dashboard-container">
@@ -199,45 +294,68 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
         <h1>ChompQuest Admin Panel</h1>
       </div>
 
-      {loading && <p className="loading-message">Loading data...</p>}
+      {loading && <p className="loading-message">Loading users...</p>}
       {error && <p className="error-message">{error}</p>}
 
       <div className="admin-main-content-split">
         <div className="admin-box">
-          <h2>User Management</h2>
-          <p>View and manage registered users.</p>
+          <h2>Member User Management</h2>
+          <p>View and manage registered member users. {!searchTerm && 'Showing 4 most recent accounts.'}</p>
           <div className="search-section">
             <input
               type="text"
-              placeholder="Search users by name or email..."
+              placeholder="Search member users by username or email..."
               className="search-input"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <button onClick={handleRefreshUsers} className="action-button refresh-button">Refresh Users</button>
           </div>
+          {isSearching && <p className="loading-message">Searching...</p>}
+          
+          {/* Success/Error Message Display */}
+          {message && (
+            <div className={`admin-message ${message.type === 'success' ? 'success-message' : 'error-message'}`}>
+              {message.text}
+            </div>
+          )}
+          
           <div className="table-container">
             <table>
               <thead>
                 <tr>
-                  <th>ID</th>
-                  <th>Name</th>
+                  <th>Username</th>
                   <th>Email</th>
                   <th>Registration Date</th>
-                  <th className="action-column">Actions</th>
+                  <th>Streak</th>
+                  <th>Points</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredUsers.length > 0 ? (
-                  filteredUsers.map((user) => (
+                {users.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} style={{ textAlign: 'center' }}>
+                      {searchTerm ? 'No users found matching your search.' : 'No member users found.'}
+                    </td>
+                  </tr>
+                ) : (
+                  users.map((user) => (
                     <tr key={user.id}>
-                      <td>{user.id}</td>
-                      <td>{user.name}</td>
+                      <td>{user.username}</td>
                       <td>{user.email}</td>
                       <td>{new Date(user.registrationDate).toLocaleDateString()}</td>
+                      <td>{user.game_stats.dailyStreak}</td>
+                      <td>{user.game_stats.pointTotal}</td>
                       <td className="action-column">
                         <button
-                          onClick={() => handleDeleteUser(user.id)}
+                          onClick={() => openEditModal(user)}
+                          className="action-button edit-button"
+                          disabled={loading}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => openDeleteModal(user)}
                           className="action-button delete-button"
                           disabled={loading}
                         >
@@ -246,10 +364,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                       </td>
                     </tr>
                   ))
-                ) : (
-                  <tr>
-                    <td colSpan={5} style={{ textAlign: 'center' }}>No users found.</td>
-                  </tr>
                 )}
               </tbody>
             </table>
@@ -258,33 +372,37 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
         <div className="admin-box">
           <h2>Food Item Management</h2>
-          <p>This section allows you to manage pre-defined food items.</p>
-
-          <button
-            onClick={() => setShowFoodItemManagement(!showFoodItemManagement)}
-            className="action-button primary-button toggle-button"
-          >
-            {showFoodItemManagement ? 'Hide Add Food Item Form' : 'Show Add Food Item Form'}
-          </button>
-
-          {showFoodItemManagement && (
-            <div className="food-item-management-section">
-                <ManageFoodItems
-                    currentLookup={foodLookup}
-                    onAdd={handleAddFoodItem}
-                    onClose={() => setShowFoodItemManagement(false)}
-                />
+          <p>Manage the food database for the app.</p>
+          {!showFoodItemManagement ? (
+            <button
+              onClick={() => setShowFoodItemManagement(true)}
+              className="action-button"
+            >
+              Open Food Item Management
+            </button>
+          ) : (
+            <div>
+              <button
+                onClick={() => setShowFoodItemManagement(false)}
+                className="action-button"
+              >
+                Close Food Item Management
+              </button>
+              <ManageFoodItems 
+                currentLookup={foodLookup}
+                onAdd={addFoodItem}
+                onClose={() => setShowFoodItemManagement(false)}
+              />
             </div>
           )}
 
-          <h3 style={{ marginTop: '30px', marginBottom: '15px' }}>Existing Pre-defined Food Items:</h3>
-          <p>Below is the list of all food items available for selection and tracking.</p>
-          <div className="table-container" style={{ maxHeight: '250px' }}>
-              <table>
+          <div className="food-lookup-display">
+              <h3>Current Food Items in Database</h3>
+              <table className="food-lookup-table">
                   <thead>
                       <tr>
                           <th>Food Name</th>
-                          <th>Cal</th>
+                          <th>Calories</th>
                           <th>Protein</th>
                           <th>Carbs</th>
                           <th>Fats</th>
@@ -322,6 +440,23 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
       <footer className="admin-footer">
         <p>&copy; 2025 ChompQuest. All rights reserved.</p>
       </footer>
+
+      {/* Modals */}
+      {showDeleteModal && selectedUser && (
+        <DeleteUserModal
+          onClose={closeModals}
+          onDelete={handleDeleteUser}
+          user={selectedUser}
+        />
+      )}
+
+      {showEditModal && selectedUser && (
+        <EditUserModal
+          onClose={closeModals}
+          onSave={handleEditUserStats}
+          user={selectedUser}
+        />
+      )}
     </div>
   );
 };
