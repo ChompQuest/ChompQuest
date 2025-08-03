@@ -195,6 +195,13 @@ function App() {
       });
 
       if (response.ok) {
+        const data = await response.json();
+        
+        // Update game stats if returned from backend
+        if (data.gameStats) {
+          updateGameStats(data.gameStats);
+        }
+        
         // Refresh nutrition data from backend
         await fetchDailyNutrition();
       } else {
@@ -235,6 +242,13 @@ function App() {
       });
 
       if (response.ok) {
+        const data = await response.json();
+        
+        // Update game stats if returned from backend
+        if (data.gameStats) {
+          updateGameStats(data.gameStats);
+        }
+        
         // Update local state
         setCurrentWaterIntake(newTotal);
         console.log('Water intake updated successfully');
