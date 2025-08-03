@@ -24,11 +24,11 @@ async function testGameStats() {
     };
 
     const result = await db.collection("users").insertOne(testUser);
-    console.log("✅ Test user created with ID:", result.insertedId);
+    console.log("[Pass] Test user created with ID:", result.insertedId);
 
     // Test retrieving the user with game stats
     const retrievedUser = await db.collection("users").findOne({ _id: result.insertedId });
-    console.log("✅ Retrieved user game stats:", retrievedUser.game_stats);
+    console.log("[Pass] Retrieved user game stats:", retrievedUser.game_stats);
 
     // Test updating game stats
     const updateResult = await db.collection("users").updateOne(
@@ -43,19 +43,19 @@ async function testGameStats() {
         } 
       }
     );
-    console.log("✅ Update result:", updateResult.modifiedCount, "documents modified");
+    console.log("[Pass] Update result:", updateResult.modifiedCount, "documents modified");
 
     // Test retrieving updated user
     const updatedUser = await db.collection("users").findOne({ _id: result.insertedId });
-    console.log("✅ Updated user game stats:", updatedUser.game_stats);
+    console.log("[Pass] Updated user game stats:", updatedUser.game_stats);
 
     // Clean up - remove test user
     await db.collection("users").deleteOne({ _id: result.insertedId });
-    console.log("✅ Test user cleaned up");
+    console.log("[Pass] Test user cleaned up");
 
-    console.log("🎉 All database tests passed!");
+    console.log("[Pass] All database tests passed!");
   } catch (error) {
-    console.error("❌ Test failed:", error);
+    console.error("[X] Test failed:", error);
   }
 }
 
