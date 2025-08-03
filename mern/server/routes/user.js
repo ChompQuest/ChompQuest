@@ -93,9 +93,11 @@ router.post("/signup", async (req, res) => {
       goals: [],
       progress: {},
       game_stats: {
-        dailyStreak: 0,
+        dailyStreak: 0,   //Will be updated when nutrition goals are met
         pointTotal: 0,
-        currentRank: 1 // 1 = Bronze, 2 = Silver, 3 = Gold
+        currentRank: 1, // 1 = Bronze, 2 = Silver, 3 = Gold
+        lastNutritionCheck: null,
+        lastDailyReset: null
       }
     };
 
@@ -306,8 +308,17 @@ router.get("/nutrition-goals", authMiddleware, async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    // Return default goals if none exist
+    const defaultGoals = {
+      calorieGoal: 2000,
+      proteinGoal: 100,
+      carbsGoal: 250,
+      fatGoal: 60,
+      waterIntakeGoal: 2000
+    };
+
     res.status(200).json({ 
-      nutritionGoals: user.nutritionGoals || null 
+      nutritionGoals: user.nutritionGoals || defaultGoals 
     });
   } catch (err) {
     console.error("Get nutrition goals error:", err);
@@ -349,10 +360,55 @@ router.post("/nutrition-goals", authMiddleware, async (req, res) => {
     const nutritionGoals = req.body;
     const userId = req.user.id;
 
+    // Validate required fields
+    if (!nutritionGoals) {
+      return res.status(400).json({ message: "Nutrition goals data is required" });
+    }
+
+    // Handle both nested goals structure and flat structure
+    let goalsToValidate;
+    let goalsToSave;
+    
+    if (nutritionGoals.goals) {
+      // Frontend is sending nested structure: { goals: { calories: 3000, ... } }
+      goalsToValidate = nutritionGoals.goals;
+      goalsToSave = {
+        calorieGoal: nutritionGoals.goals.calories,
+        proteinGoal: nutritionGoals.goals.protein,
+        carbsGoal: nutritionGoals.goals.carbs,
+        fatGoal: nutritionGoals.goals.fats,
+        waterIntakeGoal: nutritionGoals.goals.water
+      };
+    } else {
+      // Backend expects flat structure: { calorieGoal: 3000, ... }
+      goalsToValidate = nutritionGoals;
+      goalsToSave = nutritionGoals;
+    }
+
+    // Validate that all required fields are positive numbers
+    const requiredFields = ['calories', 'protein', 'carbs', 'fats', 'water'];
+    const validationErrors = [];
+
+    requiredFields.forEach(field => {
+      const value = goalsToValidate[field];
+      if (value === undefined || value === null) {
+        validationErrors.push(`${field} is required`);
+      } else if (typeof value !== 'number' || value <= 0) {
+        validationErrors.push(`${field} must be a positive number`);
+      }
+    });
+
+    if (validationErrors.length > 0) {
+      return res.status(400).json({ 
+        message: "Validation failed", 
+        errors: validationErrors 
+      });
+    }
+
     const db = getDb();
     const result = await db.collection("users").updateOne(
       { _id: new ObjectId(userId) },
-      { $set: { nutritionGoals: nutritionGoals } }
+      { $set: { nutritionGoals: goalsToSave } }
     );
 
     if (result.matchedCount === 0) {
@@ -360,7 +416,8 @@ router.post("/nutrition-goals", authMiddleware, async (req, res) => {
     }
 
     res.status(200).json({ 
-      message: "Nutrition goals saved successfully" 
+      message: "Nutrition goals saved successfully",
+      nutritionGoals: goalsToSave
     });
   } catch (err) {
     console.error("Save nutrition goals error:", err);
@@ -378,10 +435,55 @@ router.post("/nutrition-goals-by-id", async (req, res) => {
       return res.status(400).json({ message: "User ID is required" });
     }
 
+    // Validate required fields
+    if (!nutritionGoals) {
+      return res.status(400).json({ message: "Nutrition goals data is required" });
+    }
+
+    // Handle both nested goals structure and flat structure
+    let goalsToValidate;
+    let goalsToSave;
+    
+    if (nutritionGoals.goals) {
+      // Frontend is sending nested structure: { goals: { calories: 3000, ... } }
+      goalsToValidate = nutritionGoals.goals;
+      goalsToSave = {
+        calorieGoal: nutritionGoals.goals.calories,
+        proteinGoal: nutritionGoals.goals.protein,
+        carbsGoal: nutritionGoals.goals.carbs,
+        fatGoal: nutritionGoals.goals.fats,
+        waterIntakeGoal: nutritionGoals.goals.water
+      };
+    } else {
+      // Backend expects flat structure: { calorieGoal: 3000, ... }
+      goalsToValidate = nutritionGoals;
+      goalsToSave = nutritionGoals;
+    }
+
+    // Validate that all required fields are positive numbers
+    const requiredFields = ['calories', 'protein', 'carbs', 'fats', 'water'];
+    const validationErrors = [];
+
+    requiredFields.forEach(field => {
+      const value = goalsToValidate[field];
+      if (value === undefined || value === null) {
+        validationErrors.push(`${field} is required`);
+      } else if (typeof value !== 'number' || value <= 0) {
+        validationErrors.push(`${field} must be a positive number`);
+      }
+    });
+
+    if (validationErrors.length > 0) {
+      return res.status(400).json({ 
+        message: "Validation failed", 
+        errors: validationErrors 
+      });
+    }
+
     const db = getDb();
     const result = await db.collection("users").updateOne(
       { _id: new ObjectId(userId) },
-      { $set: { nutritionGoals: nutritionGoals } }
+      { $set: { nutritionGoals: goalsToSave } }
     );
 
     if (result.matchedCount === 0) {
@@ -389,7 +491,8 @@ router.post("/nutrition-goals-by-id", async (req, res) => {
     }
 
     res.status(200).json({ 
-      message: "Nutrition goals saved successfully" 
+      message: "Nutrition goals saved successfully",
+      nutritionGoals: goalsToSave
     });
   } catch (err) {
     console.error("Save nutrition goals error:", err);
@@ -403,10 +506,55 @@ router.put("/nutrition-goals", authMiddleware, async (req, res) => {
     const nutritionGoals = req.body;
     const userId = req.user.id;
 
+    // Validate required fields
+    if (!nutritionGoals) {
+      return res.status(400).json({ message: "Nutrition goals data is required" });
+    }
+
+    // Handle both nested goals structure and flat structure
+    let goalsToValidate;
+    let goalsToSave;
+    
+    if (nutritionGoals.goals) {
+      // Frontend is sending nested structure: { goals: { calories: 3000, ... } }
+      goalsToValidate = nutritionGoals.goals;
+      goalsToSave = {
+        calorieGoal: nutritionGoals.goals.calories,
+        proteinGoal: nutritionGoals.goals.protein,
+        carbsGoal: nutritionGoals.goals.carbs,
+        fatGoal: nutritionGoals.goals.fats,
+        waterIntakeGoal: nutritionGoals.goals.water
+      };
+    } else {
+      // Backend expects flat structure: { calorieGoal: 3000, ... }
+      goalsToValidate = nutritionGoals;
+      goalsToSave = nutritionGoals;
+    }
+
+    // Validate that all required fields are positive numbers
+    const requiredFields = ['calories', 'protein', 'carbs', 'fats', 'water'];
+    const validationErrors = [];
+
+    requiredFields.forEach(field => {
+      const value = goalsToValidate[field];
+      if (value === undefined || value === null) {
+        validationErrors.push(`${field} is required`);
+      } else if (typeof value !== 'number' || value <= 0) {
+        validationErrors.push(`${field} must be a positive number`);
+      }
+    });
+
+    if (validationErrors.length > 0) {
+      return res.status(400).json({ 
+        message: "Validation failed", 
+        errors: validationErrors 
+      });
+    }
+
     const db = getDb();
     const result = await db.collection("users").updateOne(
       { _id: new ObjectId(userId) },
-      { $set: { nutritionGoals: nutritionGoals } }
+      { $set: { nutritionGoals: goalsToSave } }
     );
 
     if (result.matchedCount === 0) {
@@ -414,7 +562,8 @@ router.put("/nutrition-goals", authMiddleware, async (req, res) => {
     }
 
     res.status(200).json({ 
-      message: "Nutrition goals updated successfully" 
+      message: "Nutrition goals updated successfully",
+      nutritionGoals: goalsToSave
     });
   } catch (err) {
     console.error("Update nutrition goals error:", err);
@@ -432,6 +581,31 @@ router.put("/nutrition-goals-by-id", async (req, res) => {
       return res.status(400).json({ message: "User ID is required" });
     }
 
+    // Validate required fields
+    if (!nutritionGoals) {
+      return res.status(400).json({ message: "Nutrition goals data is required" });
+    }
+
+    // Validate that all required fields are positive numbers
+    const requiredFields = ['calorieGoal', 'proteinGoal', 'carbsGoal', 'fatGoal', 'waterIntakeGoal'];
+    const validationErrors = [];
+
+    requiredFields.forEach(field => {
+      const value = nutritionGoals[field];
+      if (value === undefined || value === null) {
+        validationErrors.push(`${field} is required`);
+      } else if (typeof value !== 'number' || value <= 0) {
+        validationErrors.push(`${field} must be a positive number`);
+      }
+    });
+
+    if (validationErrors.length > 0) {
+      return res.status(400).json({ 
+        message: "Validation failed", 
+        errors: validationErrors 
+      });
+    }
+
     const db = getDb();
     const result = await db.collection("users").updateOne(
       { _id: new ObjectId(userId) },
@@ -443,7 +617,8 @@ router.put("/nutrition-goals-by-id", async (req, res) => {
     }
 
     res.status(200).json({ 
-      message: "Nutrition goals updated successfully" 
+      message: "Nutrition goals updated successfully",
+      nutritionGoals: nutritionGoals
     });
   } catch (err) {
     console.error("Update nutrition goals error:", err);
@@ -569,6 +744,133 @@ router.put("/profile", authMiddleware, async (req, res) => {
   } catch (err) {
     console.error("Update profile error:", err);
     res.status(500).json({ message: "Error updating profile" });
+  }
+});
+
+// Nutrition streak management and daily reset endpoint
+router.post("/nutrition-streak", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const db = getDb();
+    
+    // Get user's current game stats
+    const user = await db.collection("users").findOne(
+      { _id: new ObjectId(userId) },
+      { projection: { game_stats: 1, nutritionGoals: 1 } }
+    );
+    
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    const gameStats = user.game_stats || {
+      dailyStreak: 0,
+      pointTotal: 0,
+      currentRank: 1,
+      lastNutritionCheck: null,
+      lastDailyReset: null
+    };
+    
+    const nutritionGoals = user.nutritionGoals;
+    
+    // Get today's date
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    
+    // Check if we need to do a daily reset
+    const lastReset = gameStats.lastDailyReset ? new Date(gameStats.lastDailyReset).toISOString().split('T')[0] : null;
+    
+    let updatedGameStats = { ...gameStats };
+    
+    // If we haven't reset today, check today's nutrition and update streaks
+    if (lastReset !== todayStr) {
+      // Get today's nutrition totals
+      const todayStart = new Date(today);
+      todayStart.setHours(0, 0, 0, 0);
+      const todayEnd = new Date(today);
+      todayEnd.setHours(23, 59, 59, 999);
+      
+      const todayMeals = await db.collection("meals").find({
+        userId: new ObjectId(userId),
+        createdAt: {
+          $gte: todayStart,
+          $lte: todayEnd
+        }
+      }).toArray();
+      
+      // Calculate today's totals
+      const todayTotals = todayMeals.reduce((totals, meal) => {
+        totals.calories += meal.calories || 0;
+        totals.protein += meal.protein || 0;
+        totals.carbs += meal.carbs || 0;
+        totals.fat += meal.fat || 0;
+        return totals;
+      }, { calories: 0, protein: 0, carbs: 0, fat: 0 });
+      
+      // Get today's water intake
+      const todayStr = today.toISOString().split('T')[0];
+      const waterRecord = await db.collection("water_intake").findOne({
+        userId: new ObjectId(userId),
+        date: todayStr
+      });
+      const waterIntake = waterRecord ? waterRecord.intake : 0;
+      
+      // Check if nutrition goals were met today
+      let goalsMet = false;
+      if (nutritionGoals) {
+        const calorieGoal = nutritionGoals.calorieGoal || 2000;
+        const proteinGoal = nutritionGoals.proteinGoal || 100;
+        const carbsGoal = nutritionGoals.carbsGoal || 250;
+        const fatGoal = nutritionGoals.fatGoal || 60;
+        const waterGoal = nutritionGoals.waterIntakeGoal || 2000;
+        
+        // Goals are met if user reached 100% of each goal (including water)
+        goalsMet = (
+          todayTotals.calories >= calorieGoal &&
+          todayTotals.protein >= proteinGoal &&
+          todayTotals.carbs >= carbsGoal &&
+          todayTotals.fat >= fatGoal &&
+          waterIntake >= waterGoal
+        );
+      }
+      
+      // Update daily streak based on nutrition goals
+      if (goalsMet) {
+        updatedGameStats.dailyStreak = (updatedGameStats.dailyStreak || 0) + 1;
+        // Add points for meeting goals (10 points per day)
+        updatedGameStats.pointTotal = (updatedGameStats.pointTotal || 0) + 10;
+      } else {
+        // Reset streak if goals weren't met
+        updatedGameStats.dailyStreak = 0;
+      }
+      
+      // Update rank based on daily streak
+      if (updatedGameStats.dailyStreak >= 30) {
+        updatedGameStats.currentRank = 3; // Gold
+      } else if (updatedGameStats.dailyStreak >= 15) {
+        updatedGameStats.currentRank = 2; // Silver
+      } else if (updatedGameStats.dailyStreak >= 7) {
+        updatedGameStats.currentRank = 1; // Bronze
+      }
+      
+      // Mark today as reset
+      updatedGameStats.lastDailyReset = new Date();
+    }
+    
+    // Update user's game stats
+    await db.collection("users").updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: { game_stats: updatedGameStats } }
+    );
+    
+    res.status(200).json({
+      message: "Nutrition streak updated successfully",
+      game_stats: updatedGameStats
+    });
+    
+  } catch (err) {
+    console.error("Nutrition streak update error:", err);
+    res.status(500).json({ message: "Error updating nutrition streak" });
   }
 });
 

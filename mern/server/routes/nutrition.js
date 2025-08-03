@@ -2,6 +2,7 @@ import express from "express";
 import { getDb } from "../db/connection.js";
 import { ObjectId } from "mongodb";
 import authMiddleware from "../middleware/authMiddleware.js";
+import fetch from "node-fetch";
 
 const router = express.Router();
 
@@ -51,13 +52,33 @@ router.get("/today", authMiddleware, async (req, res) => {
     const userId = req.user.id;
     const db = getDb();
     
+    // First, update nutrition streak and check daily reset
+    try {
+      const streakResponse = await fetch(`http://localhost:5050/user/nutrition-streak`, {
+        method: 'POST',
+        headers: {
+          'Authorization': req.headers.authorization,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (streakResponse.ok) {
+        const streakData = await streakResponse.json();
+        console.log('Nutrition streak updated:', streakData.game_stats);
+      }
+    } catch (streakErr) {
+      console.error('Error updating nutrition streak:', streakErr);
+      // Continue with nutrition data even if streak update fails
+    }
+    
     // Get user's nutrition goals
     const user = await db.collection("users").findOne(
       { _id: new ObjectId(userId) },
-      { projection: { nutritionGoals: 1 } }
+      { projection: { nutritionGoals: 1, game_stats: 1 } }
     );
     
     const nutritionGoals = user?.nutritionGoals || null;
+    const gameStats = user?.game_stats || null;
     
     // Get start and end of current day
     const { startOfDay, endOfDay } = getDayBounds();
@@ -74,40 +95,63 @@ router.get("/today", authMiddleware, async (req, res) => {
     // Aggregate nutrition totals
     const dailyTotals = aggregateNutritionTotals(meals);
     
+    // Get today's water intake
+    const todayStr = new Date().toISOString().split('T')[0];
+    const waterRecord = await db.collection("water_intake").findOne({
+      userId: new ObjectId(userId),
+      date: todayStr
+    });
+    const waterIntake = waterRecord ? waterRecord.intake : 0;
+    
     // Structure response for frontend consumption
     const response = {
       date: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
-      totals: dailyTotals,
+      totals: {
+        ...dailyTotals,
+        water: waterIntake
+      },
       goals: nutritionGoals ? {
-        calories: nutritionGoals.calorieGoal || 0,
-        protein: nutritionGoals.proteinGoal || 0,
-        carbs: nutritionGoals.carbsGoal || 0,
-        fat: nutritionGoals.fatGoal || 0,
-        water: nutritionGoals.waterIntakeGoal || 0
-      } : null,
+        calories: nutritionGoals.calorieGoal || 2000,
+        protein: nutritionGoals.proteinGoal || 100,
+        carbs: nutritionGoals.carbsGoal || 250,
+        fat: nutritionGoals.fatGoal || 60,
+        water: nutritionGoals.waterIntakeGoal || 2000
+      } : {
+        calories: 2000,
+        protein: 100,
+        carbs: 250,
+        fat: 60,
+        water: 2000
+      },
       meals: meals.length,
-      progress: nutritionGoals ? {
+      gameStats: gameStats,
+      progress: {
         calories: {
           current: dailyTotals.calories,
-          goal: nutritionGoals.calorieGoal || 0,
-          percentage: Math.round((dailyTotals.calories / (nutritionGoals.calorieGoal || 1)) * 100)
+          goal: nutritionGoals?.calorieGoal || 2000,
+          percentage: Math.round((dailyTotals.calories / (nutritionGoals?.calorieGoal || 2000)) * 100)
         },
         protein: {
           current: dailyTotals.protein,
-          goal: nutritionGoals.proteinGoal || 0,
-          percentage: Math.round((dailyTotals.protein / (nutritionGoals.proteinGoal || 1)) * 100)
+          goal: nutritionGoals?.proteinGoal || 100,
+          percentage: Math.round((dailyTotals.protein / (nutritionGoals?.proteinGoal || 100)) * 100)
         },
         carbs: {
           current: dailyTotals.carbs,
-          goal: nutritionGoals.carbsGoal || 0,
-          percentage: Math.round((dailyTotals.carbs / (nutritionGoals.carbsGoal || 1)) * 100)
+          goal: nutritionGoals?.carbsGoal || 250,
+          percentage: Math.round((dailyTotals.carbs / (nutritionGoals?.carbsGoal || 250)) * 100)
         },
         fat: {
           current: dailyTotals.fat,
-          goal: nutritionGoals.fatGoal || 0,
-          percentage: Math.round((dailyTotals.fat / (nutritionGoals.fatGoal || 1)) * 100)
+          goal: nutritionGoals?.fatGoal || 60,
+          percentage: Math.round((dailyTotals.fat / (nutritionGoals?.fatGoal || 60)) * 100)
+        },
+        water: {
+          current: waterIntake,
+          goal: nutritionGoals?.waterIntakeGoal || 2000,
+          percentage: Math.round((waterIntake / (nutritionGoals?.waterIntakeGoal || 2000)) * 100)
         }
-      } : null
+      }
     };
     
     res.status(200).json(response);
@@ -288,6 +332,77 @@ router.get("/meals/recent", authMiddleware, async (req, res) => {
   } catch (err) {
     console.error("Get recent meals error:", err);
     res.status(500).json({ message: "Error retrieving recent meals" });
+  }
+});
+
+// GET /nutrition/water - Get today's water intake
+router.get("/water", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const db = getDb();
+    
+    // Get today's date
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    
+    // Get today's water intake
+    const waterRecord = await db.collection("water_intake").findOne({
+      userId: new ObjectId(userId),
+      date: todayStr
+    });
+    
+    const waterIntake = waterRecord ? waterRecord.intake : 0;
+    
+    res.status(200).json({ 
+      waterIntake,
+      date: todayStr
+    });
+    
+  } catch (err) {
+    console.error("Get water intake error:", err);
+    res.status(500).json({ message: "Error retrieving water intake" });
+  }
+});
+
+// POST /nutrition/water - Add water intake
+router.post("/water", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { intake } = req.body;
+    const db = getDb();
+    
+    if (typeof intake !== 'number' || intake < 0) {
+      return res.status(400).json({ message: "Water intake must be a positive number" });
+    }
+    
+    // Get today's date
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    
+    // Upsert water intake for today
+    const result = await db.collection("water_intake").updateOne(
+      {
+        userId: new ObjectId(userId),
+        date: todayStr
+      },
+      {
+        $set: {
+          intake: intake,
+          updatedAt: new Date()
+        }
+      },
+      { upsert: true }
+    );
+    
+    res.status(200).json({ 
+      message: "Water intake updated successfully",
+      waterIntake: intake,
+      date: todayStr
+    });
+    
+  } catch (err) {
+    console.error("Update water intake error:", err);
+    res.status(500).json({ message: "Error updating water intake" });
   }
 });
 

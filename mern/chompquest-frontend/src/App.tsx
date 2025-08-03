@@ -147,6 +147,9 @@ function App() {
           fats: data.totals.fat || 0,
         });
 
+        // Update water intake from backend
+        setCurrentWaterIntake(data.totals.water || 0);
+
         // Update daily goals if available
         if (data.goals) {
           setDailyGoals({
@@ -155,6 +158,13 @@ function App() {
             carbs: data.goals.carbs || 250,
             fats: data.goals.fat || 60,
           });
+          // Update water goal from backend
+          setWaterGoal(data.goals.water || 2000);
+        }
+
+        // Update game stats if available
+        if (data.gameStats) {
+          updateGameStats(data.gameStats);
         }
       } else {
         console.error('Failed to fetch daily nutrition:', response.statusText);
@@ -210,12 +220,43 @@ function App() {
   // Test ends
 
   const [currentWaterIntake, setCurrentWaterIntake] = useState<number>(0);
-  const waterGoal = 2000; // get water goal from backend
+  const [waterGoal, setWaterGoal] = useState<number>(2000); // get water goal from backend
 
   const [showAddCustomWaterModal, setShowAddCustomWaterModal] = useState(false);
 
-  const handleAddWater = (amount: number) => {
-    setCurrentWaterIntake(prev => prev + amount);
+  const handleAddWater = async (amount: number) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.error('No JWT token found');
+        return;
+      }
+
+      // Calculate new total water intake
+      const newTotal = currentWaterIntake + amount;
+
+      // Send water intake to backend
+      const response = await fetch('http://localhost:5050/nutrition/water', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          intake: newTotal
+        }),
+      });
+
+      if (response.ok) {
+        // Update local state
+        setCurrentWaterIntake(newTotal);
+        console.log('Water intake updated successfully');
+      } else {
+        console.error('Failed to update water intake:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error updating water intake:', error);
+    }
   };
 
   const handleOpenAddCustomWaterModal = () => {
