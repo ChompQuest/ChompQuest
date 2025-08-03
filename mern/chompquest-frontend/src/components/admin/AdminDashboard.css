@@ -1,5 +1,4 @@
 .admin-dashboard-container {
-  padding: 30px;
   max-width: 1400px;
   background-color: #ffffff;
   border: 1px solid #e0e0e0;
@@ -21,7 +20,7 @@
   border-top-right-radius: 12px;
   margin-left: -30px;
   margin-right: -30px;
-  margin-top: -30px;
+  margin-top: -100px;
   width: calc(100% + 60px);
   box-sizing: border-box;
 }
@@ -76,7 +75,6 @@
   margin-top: 0;
   margin-bottom: 15px;
   border-bottom: 2px solid #e9ecef;
-  padding-bottom: 10px;
 }
 
 .admin-box p {
@@ -92,12 +90,19 @@
   align-items: center;
 }
 
+.food-search-section {
+  margin-bottom: 15px;
+  width: 100%;
+}
+
 .search-input {
   flex-grow: 1;
   padding: 10px 15px;
   border: 1px solid #ccc;
   border-radius: 5px;
   font-size: 1em;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .table-container {
@@ -106,6 +111,13 @@
   max-height: 400px;
   margin-top: 20px;
   flex-grow: 1;
+}
+
+.food-lookup-display-container {
+  max-height: 500px;
+  overflow-y: auto;
+  border: 1px solid #e0e0e0; 
+  border-radius: 8px; 
 }
 
 table {
@@ -122,6 +134,13 @@ table thead {
   position: sticky;
   top: 0;
   z-index: 1;
+}
+
+.food-lookup-display-container thead {
+    position: sticky;
+    top: 0;
+    background-color: #eef2f7; 
+    z-index: 1; 
 }
 
 table th, table td {
@@ -261,7 +280,6 @@ table tbody tr:last-child td {
   }
 }
 
-/* Message display styling */
 .admin-message {
   padding: 1rem;
   margin: 1rem 0;
@@ -283,7 +301,6 @@ table tbody tr:last-child td {
   border: 1px solid #f5c6cb;
 }
 
-/* Action buttons styling */
 .edit-button {
   background-color: #007bff !important;
   color: white !important;
@@ -292,4 +309,16 @@ table tbody tr:last-child td {
 
 .edit-button:hover:not(:disabled) {
   background-color: #0056b3 !important;
+}
+
+.admin-box table td:last-child {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.admin-box table .action-button {
+    padding: 6px 12px;
+    font-size: 0.8em;
 }

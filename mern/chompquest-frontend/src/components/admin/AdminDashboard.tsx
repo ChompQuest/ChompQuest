@@ -1,9 +1,8 @@
-// src/components/AdminDashboard.tsx (UPDATED)
 import React, { useState, useEffect } from 'react';
 import './AdminDashboard.css';
 import type { NutrientData } from '../types';
 import ManageFoodItems from './ManageFoodItems';
-import AdminProfileMenu from './AdminProfileMenu'; // Import the AdminProfileMenu component
+import AdminProfileMenu from './AdminProfileMenu'; 
 import DeleteUserModal from './DeleteUserModal';
 import EditUserModal from './EditUserModal';
 
@@ -41,6 +40,7 @@ interface AdminDashboardProps {
 const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   const [users, setUsers] = useState<UserData[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [foodSearchTerm, setFoodSearchTerm] = useState(''); 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState(false);
@@ -61,7 +61,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     }
   });
 
-  // Fetch member users from API
   const fetchMemberUsers = async (searchQuery = '', limit: number | null = null) => {
     try {
       setLoading(true);
@@ -72,9 +71,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
         throw new Error('No authentication token found');
       }
 
-      // Build query parameters
       const params = new URLSearchParams();
-      params.append('role', 'member'); // Only fetch member users
+      params.append('role', 'member');
       if (searchQuery) {
         params.append('search', searchQuery);
       }
@@ -119,7 +117,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     loadInitialUsers();
   }, []);
 
-  // Handle search with debouncing
+  // Handle user search with debouncing
   useEffect(() => {
     if (!searchTerm.trim()) {
       // If search is empty, show initial 4 users
@@ -277,14 +275,15 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
   const handleAdminLogout = () => {
     console.log("Admin is performing logout actions...");
-    
-    // Clear admin-specific data first
     localStorage.removeItem(LOCAL_STORAGE_FOOD_LOOKUP_KEY);
     localStorage.removeItem(LOCAL_STORAGE_MEALS_KEY);
     
-    // Use the main app logout function to properly clear auth state
     onLogout();
   };
+
+  const filteredFoodItems = Object.entries(foodLookup).filter(([name]) =>
+    name.toLowerCase().includes(foodSearchTerm.toLowerCase())
+  );
 
   return (
     <div className="admin-dashboard-container">
@@ -376,7 +375,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
           {!showFoodItemManagement ? (
             <button
               onClick={() => setShowFoodItemManagement(true)}
-              className="action-button"
+              className="action-button primary-button toggle-button"
             >
               Open Food Item Management
             </button>
@@ -384,7 +383,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
             <div>
               <button
                 onClick={() => setShowFoodItemManagement(false)}
-                className="action-button"
+                className="action-button primary-button toggle-button"
               >
                 Close Food Item Management
               </button>
@@ -398,41 +397,55 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
           <div className="food-lookup-display">
               <h3>Current Food Items in Database</h3>
-              <table className="food-lookup-table">
-                  <thead>
-                      <tr>
-                          <th>Food Name</th>
-                          <th>Calories</th>
-                          <th>Protein</th>
-                          <th>Carbs</th>
-                          <th>Fats</th>
-                          <th className="action-column">Actions</th>
-                      </tr>
-                  </thead>
-                  <tbody>
-                      {Object.keys(foodLookup).length === 0 ? (
-                          <tr><td colSpan={6} style={{ textAlign: 'center' }}>No pre-defined food items yet.</td></tr>
-                      ) : (
-                          Object.entries(foodLookup).map(([name, data]) => (
-                              <tr key={name}>
-                                  <td>{name}</td>
-                                  <td>{data.calories}</td>
-                                  <td>{data.protein}</td>
-                                  <td>{data.carbs}</td>
-                                  <td>{data.fats}</td>
-                                  <td className="action-column">
-                                      <button
-                                          onClick={() => handleDeleteFoodItem(name)}
-                                          className="action-button delete-button"
-                                      >
-                                          Delete
-                                      </button>
-                                  </td>
-                              </tr>
-                          ))
-                      )}
-                  </tbody>
-              </table>
+              <div className="food-search-section">
+                <input
+                  type="text"
+                  placeholder="Search pre-defined food items..."
+                  className="search-input"
+                  value={foodSearchTerm}
+                  onChange={(e) => setFoodSearchTerm(e.target.value)}
+                />
+              </div>
+
+              <div className="food-lookup-display-container">
+                <table className="food-lookup-table">
+                    <thead>
+                        <tr>
+                            <th>Food Name</th>
+                            <th>Calories</th>
+                            <th>Protein</th>
+                            <th>Carbs</th>
+                            <th>Fats</th>
+                            <th className="action-column">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {filteredFoodItems.length === 0 ? (
+                            <tr><td colSpan={6} style={{ textAlign: 'center' }}>No pre-defined food items found.</td></tr>
+                        ) : (
+                            Object.entries(foodLookup)
+                              .filter(([name]) => name.toLowerCase().includes(foodSearchTerm.toLowerCase()))
+                              .map(([name, data]) => (
+                                <tr key={name}>
+                                    <td>{name}</td>
+                                    <td>{data.calories}</td>
+                                    <td>{data.protein}</td>
+                                    <td>{data.carbs}</td>
+                                    <td>{data.fats}</td>
+                                    <td className="action-column">
+                                        <button
+                                            onClick={() => handleDeleteFoodItem(name)}
+                                            className="action-button delete-button"
+                                        >
+                                            Delete
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
+              </div>
           </div>
         </div>
       </div>

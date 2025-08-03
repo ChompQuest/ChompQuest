@@ -23,7 +23,7 @@
 
 .food-inputs-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr; /* Two columns for inputs */
+  grid-template-columns: 1fr 1fr; 
   gap: 15px;
   margin-bottom: 20px;
 }
@@ -54,7 +54,7 @@
 
 .food-form-actions {
     display: flex;
-    justify-content: flex-end; /* Align buttons to the right */
+    justify-content: flex-end; 
     gap: 10px;
 }
 
@@ -65,10 +65,6 @@
   margin-bottom: 15px;
 }
 
-/* Reusing existing table styles from AdminDashboard.css for food list */
-/* No need to duplicate them here if they are applied globally or the modal structure allows */
-
-/* Modal Overlays (if you don't have them globally) */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -87,9 +83,9 @@
   padding: 30px;
   border-radius: 10px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-  max-width: 700px; /* Adjust as needed for food management */
+  max-width: 700px; 
   width: 90%;
-  max-height: 80vh; /* Allow content to scroll if too long */
+  max-height: 80vh; 
   overflow-y: auto;
   position: relative;
 }
@@ -103,9 +99,7 @@
     padding-bottom: 15px;
 }
 
-/* Inherit action button styles from AdminDashboard.css if linked correctly */
 .manage-foods-container .action-button {
-    /* You might want slightly smaller padding/font for internal buttons */
     padding: 8px 15px;
     font-size: 0.85em;
 }
@@ -115,22 +109,20 @@
     font-size: 1em;
 }
 
-.admin-box table td:last-child { /* Targets the last column in the table, typically the actions column */
+.admin-box table td:last-child {
     display: flex;
-    gap: 8px; /* Adds 8px space between the buttons */
-    align-items: center; /* Vertically aligns buttons in the middle if they have different heights */
-    justify-content: flex-start; /* Aligns buttons to the start of the cell */
+    gap: 8px; 
+    align-items: center;
+    justify-content: flex-start;
 }
-
-/* You might want to adjust button sizes or padding within tables for better fit */
 .admin-box table .action-button {
-    padding: 6px 12px; /* Slightly smaller padding for table buttons */
-    font-size: 0.8em; /* Adjust font size if needed */
+    padding: 6px 12px;
+    font-size: 0.8em;
 }
 
 
 @media (max-width: 768px) {
   .food-inputs-grid {
-    grid-template-columns: 1fr; /* Stack inputs on smaller screens */
+    grid-template-columns: 1fr; 
   }
 }
