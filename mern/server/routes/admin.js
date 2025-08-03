@@ -161,24 +161,82 @@ router.put("/users/:id/stats", adminMiddleware, async (req, res) => {
     }
 
     const db = getDb();
+    
+    // Get current user state first
+    const user = await db.collection("users").findOne(
+      { _id: new ObjectId(id) },
+      { projection: { game_stats: 1, username: 1 } }
+    );
+    
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    const currentGameStats = user.game_stats || {};
+    
+    // Calculate correct rank based on new streak
+    function calculateRank(dailyStreak) {
+      if (dailyStreak >= 30) {
+        return 3; // Gold
+      } else if (dailyStreak >= 15) {
+        return 2; // Silver
+      } else {
+        return 1; // Bronze (0-14 days)
+      }
+    }
+    
+    const newRank = calculateRank(streak);
+    
+    // Smart date logic: Set lastGoalsCompletedDate to yesterday if user hasn't completed goals today
+    // This allows the user to complete goals today and increase their streak
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    let lastGoalsCompletedDate = currentGameStats.lastGoalsCompletedDate;
+    let goalsCompletedToday = currentGameStats.goalsCompletedToday || false;
+    
+    // If user hasn't completed goals today, set lastGoalsCompletedDate to yesterday
+    // so they can complete today's goals and increase the admin-set streak
+    if (!goalsCompletedToday) {
+      lastGoalsCompletedDate = yesterday;
+      console.log(`📅 Admin override: Setting lastGoalsCompletedDate to yesterday for ${user.username} (streak ${streak})`);
+    } else {
+      console.log(`ℹ️  User ${user.username} already completed goals today, keeping current date`);
+    }
+    
+    const updateData = {
+      "game_stats.pointTotal": points,
+      "game_stats.dailyStreak": streak,
+      "game_stats.currentRank": newRank,
+      "game_stats.lastGoalsCompletedDate": lastGoalsCompletedDate,
+      "game_stats.adminModified": true,
+      "game_stats.lastAdminUpdate": new Date()
+    };
+    
     const result = await db.collection("users").updateOne(
       { _id: new ObjectId(id) },
-      { 
-        $set: {
-          "game_stats.pointTotal": points,
-          "game_stats.dailyStreak": streak
-        }
-      }
+      { $set: updateData }
     );
 
     if (result.matchedCount === 0) {
       return res.status(404).json({ message: "User not found" });
     }
 
+    const rankNames = { 1: 'Bronze', 2: 'Silver', 3: 'Gold' };
+    console.log(`🔧 Admin updated ${user.username}: ${streak} days (${rankNames[newRank]}), ${points} points`);
+
     res.status(200).json({
       message: "User stats updated successfully",
       userId: id,
-      newStats: { points, streak }
+      newStats: { 
+        points, 
+        streak, 
+        rank: newRank,
+        rankName: rankNames[newRank],
+        lastGoalsCompletedDate: lastGoalsCompletedDate,
+        canCompleteToday: !goalsCompletedToday
+      }
     });
   } catch (error) {
     console.error("Error updating user stats:", error);

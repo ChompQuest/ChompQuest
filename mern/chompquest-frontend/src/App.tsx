@@ -166,6 +166,26 @@ function App() {
         if (data.gameStats) {
           updateGameStats(data.gameStats);
         }
+        
+        // Call safe rank update endpoint on login
+        try {
+          const rankResponse = await fetch('http://localhost:5050/user/update-rank', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          if (rankResponse.ok) {
+            const rankData = await rankResponse.json();
+            updateGameStats(rankData.game_stats);
+            console.log('Rank updated on login:', rankData.game_stats);
+          }
+        } catch (rankErr) {
+          console.error('Error updating rank on login:', rankErr);
+          // Continue even if rank update fails
+        }
       } else {
         console.error('Failed to fetch daily nutrition:', response.statusText);
       }
@@ -210,6 +230,25 @@ function App() {
       if (response.ok) {
         // Refresh nutrition data from backend
         await fetchDailyNutrition();
+        
+        // Check daily goals after adding meal
+        try {
+          const goalsResponse = await fetch('http://localhost:5050/user/check-daily-goals', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          if (goalsResponse.ok) {
+            const goalsData = await goalsResponse.json();
+            updateGameStats(goalsData.game_stats);
+            console.log('Goals checked after meal:', goalsData.goals_status);
+          }
+        } catch (goalsErr) {
+          console.error('Error checking goals after meal:', goalsErr);
+        }
       } else {
         console.error('Failed to add meal:', response.statusText);
       }
@@ -251,6 +290,25 @@ function App() {
         // Update local state
         setCurrentWaterIntake(newTotal);
         console.log('Water intake updated successfully');
+        
+        // Check daily goals after adding water
+        try {
+          const goalsResponse = await fetch('http://localhost:5050/user/check-daily-goals', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          if (goalsResponse.ok) {
+            const goalsData = await goalsResponse.json();
+            updateGameStats(goalsData.game_stats);
+            console.log('Goals checked after water:', goalsData.goals_status);
+          }
+        } catch (goalsErr) {
+          console.error('Error checking goals after water:', goalsErr);
+        }
       } else {
         console.error('Failed to update water intake:', response.statusText);
       }

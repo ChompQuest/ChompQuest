@@ -52,25 +52,6 @@ router.get("/today", authMiddleware, async (req, res) => {
     const userId = req.user.id;
     const db = getDb();
     
-    // First, update nutrition streak and check daily reset
-    try {
-      const streakResponse = await fetch(`http://localhost:5050/user/nutrition-streak`, {
-        method: 'POST',
-        headers: {
-          'Authorization': req.headers.authorization,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (streakResponse.ok) {
-        const streakData = await streakResponse.json();
-        console.log('Nutrition streak updated:', streakData.game_stats);
-      }
-    } catch (streakErr) {
-      console.error('Error updating nutrition streak:', streakErr);
-      // Continue with nutrition data even if streak update fails
-    }
-    
     // Get user's nutrition goals
     const user = await db.collection("users").findOne(
       { _id: new ObjectId(userId) },

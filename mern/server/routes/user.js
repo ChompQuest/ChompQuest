@@ -7,6 +7,17 @@ import authMiddleware from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
+// Utility function to calculate rank based on streak
+function calculateRank(dailyStreak) {
+  if (dailyStreak >= 30) {
+    return 3; // Gold
+  } else if (dailyStreak >= 15) {
+    return 2; // Silver
+  } else {
+    return 1; // Bronze (0-14 days)
+  }
+}
+
 // Password validation function
 const validatePassword = (password) => {
   if (password.length < 6) {
@@ -768,6 +779,236 @@ router.post("/nutrition-streak", authMiddleware, async (req, res) => {
       pointTotal: 0,
       currentRank: 1,
       lastNutritionCheck: null,
+      lastDailyReset: null,
+      goalsCompletedToday: false,
+      lastGoalsCompletedDate: null
+    };
+    
+    const nutritionGoals = user.nutritionGoals;
+    
+    // Get today's date
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    
+    // Check if we need to do a daily reset (new day started)
+    const lastResetDate = gameStats.lastDailyReset ? new Date(gameStats.lastDailyReset).toISOString().split('T')[0] : null;
+    const lastGoalsDate = gameStats.lastGoalsCompletedDate ? new Date(gameStats.lastGoalsCompletedDate).toISOString().split('T')[0] : null;
+    
+    let updatedGameStats = { ...gameStats };
+    let isNewDay = lastResetDate !== todayStr;
+    
+    // If it's a new day, handle the daily reset
+    if (isNewDay) {
+      console.log(`🌅 New day detected for user ${userId}. Last reset: ${lastResetDate}, Today: ${todayStr}`);
+      
+      // Reset daily flags for new day
+      updatedGameStats.goalsCompletedToday = false;
+      updatedGameStats.lastDailyReset = new Date();
+      
+      // Only reset streak if we have clear evidence goals were NOT completed yesterday
+      // Be conservative - don't reset streak unless we're certain
+      if (lastGoalsDate && lastGoalsDate !== todayStr && lastResetDate) {
+        // Calculate yesterday's date
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toISOString().split('T')[0];
+        
+        // Only reset if goals were definitely not completed yesterday
+        if (lastGoalsDate < yesterdayStr) {
+          console.log(`📉 Goals not completed yesterday (${yesterdayStr}), last completed: ${lastGoalsDate}, resetting streak to 0`);
+          updatedGameStats.dailyStreak = 0;
+        } else {
+          console.log(`✅ Goals were completed recently (${lastGoalsDate}), maintaining streak`);
+        }
+      } else {
+        console.log(`ℹ️  Insufficient data to determine yesterday's goal completion, maintaining streak`);
+      }
+    }
+    
+    // Always check current nutrition status (allows real-time updates)
+    const todayStart = new Date(today);
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date(today);
+    todayEnd.setHours(23, 59, 59, 999);
+    
+    // Get today's meals
+    const todayMeals = await db.collection("meals").find({
+      userId: new ObjectId(userId),
+      createdAt: {
+        $gte: todayStart,
+        $lte: todayEnd
+      }
+    }).toArray();
+    
+    // Calculate today's nutrition totals
+    const todayTotals = todayMeals.reduce((totals, meal) => {
+      totals.calories += meal.calories || 0;
+      totals.protein += meal.protein || 0;
+      totals.carbs += meal.carbs || 0;
+      totals.fat += meal.fat || 0;
+      return totals;
+    }, { calories: 0, protein: 0, carbs: 0, fat: 0 });
+    
+    // Get today's water intake
+    const waterRecord = await db.collection("water_intake").findOne({
+      userId: new ObjectId(userId),
+      date: todayStr
+    });
+    const waterIntake = waterRecord ? waterRecord.intake : 0;
+    
+    // Check if nutrition goals are currently met
+    let goalsMet = false;
+    let goalsMetPercentage = 0;
+    if (nutritionGoals) {
+      const calorieGoal = nutritionGoals.calorieGoal || 2000;
+      const proteinGoal = nutritionGoals.proteinGoal || 100;
+      const carbsGoal = nutritionGoals.carbsGoal || 250;
+      const fatGoal = nutritionGoals.fatGoal || 60;
+      const waterGoal = nutritionGoals.waterIntakeGoal || 2000;
+      
+      // Calculate completion percentage for each goal
+      const goalCompletions = [
+        Math.min(todayTotals.calories / calorieGoal, 1),
+        Math.min(todayTotals.protein / proteinGoal, 1),
+        Math.min(todayTotals.carbs / carbsGoal, 1),
+        Math.min(todayTotals.fat / fatGoal, 1),
+        Math.min(waterIntake / waterGoal, 1)
+      ];
+      
+      goalsMetPercentage = (goalCompletions.reduce((sum, completion) => sum + completion, 0) / goalCompletions.length) * 100;
+      
+      // Goals are met if user reached 100% of each goal (including water)
+      goalsMet = (
+        todayTotals.calories >= calorieGoal &&
+        todayTotals.protein >= proteinGoal &&
+        todayTotals.carbs >= carbsGoal &&
+        todayTotals.fat >= fatGoal &&
+        waterIntake >= waterGoal
+      );
+    }
+    
+    // Handle goal completion - only award points once per day
+    if (goalsMet && !updatedGameStats.goalsCompletedToday) {
+      console.log(`🎉 Goals completed for user ${userId}! Awarding points and increasing streak.`);
+      
+      // Increase streak and award points
+      updatedGameStats.dailyStreak = (updatedGameStats.dailyStreak || 0) + 1;
+      updatedGameStats.pointTotal = (updatedGameStats.pointTotal || 0) + 10;
+      updatedGameStats.goalsCompletedToday = true;
+      updatedGameStats.lastGoalsCompletedDate = new Date();
+      
+      console.log(`📈 New streak: ${updatedGameStats.dailyStreak}, Points: ${updatedGameStats.pointTotal}`);
+    }
+    
+    // Always calculate rank based on current streak (immediate updates)
+    const previousRank = updatedGameStats.currentRank;
+    updatedGameStats.currentRank = calculateRank(updatedGameStats.dailyStreak);
+    
+    // Log rank changes
+    if (previousRank !== updatedGameStats.currentRank) {
+      const rankNames = { 1: 'Bronze', 2: 'Silver', 3: 'Gold' };
+      console.log(`🏆 Rank updated for user ${userId}: ${rankNames[previousRank]} → ${rankNames[updatedGameStats.currentRank]}`);
+    }
+    
+    // Update user's game stats in database
+    await db.collection("users").updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: { game_stats: updatedGameStats } }
+    );
+    
+    // Return detailed response with current status
+    res.status(200).json({
+      message: "Nutrition streak updated successfully",
+      game_stats: updatedGameStats,
+      today_status: {
+        goals_met: goalsMet,
+        goals_completion_percentage: Math.round(goalsMetPercentage),
+        goals_completed_today: updatedGameStats.goalsCompletedToday,
+        is_new_day: isNewDay,
+        nutrition_totals: {
+          ...todayTotals,
+          water: waterIntake
+        }
+      }
+    });
+    
+  } catch (err) {
+    console.error("Nutrition streak update error:", err);
+    res.status(500).json({ message: "Error updating nutrition streak" });
+  }
+});
+
+// Safe rank update endpoint - called on login, no streak resets
+router.post("/update-rank", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const db = getDb();
+    
+    // Get user's current game stats
+    const user = await db.collection("users").findOne(
+      { _id: new ObjectId(userId) },
+      { projection: { game_stats: 1, username: 1 } }
+    );
+    
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    const gameStats = user.game_stats || {
+      dailyStreak: 0,
+      pointTotal: 0,
+      currentRank: 1
+    };
+    
+    // Calculate correct rank based on current streak
+    const correctRank = calculateRank(gameStats.dailyStreak);
+    
+    // Only update if rank changed
+    if (correctRank !== gameStats.currentRank) {
+      console.log(`🏆 Updating rank for ${user.username}: ${gameStats.currentRank} → ${correctRank} (${gameStats.dailyStreak} day streak)`);
+      
+      await db.collection("users").updateOne(
+        { _id: new ObjectId(userId) },
+        { $set: { "game_stats.currentRank": correctRank } }
+      );
+      
+      // Update local object for response
+      gameStats.currentRank = correctRank;
+    }
+    
+    res.status(200).json({
+      message: "Rank updated successfully", 
+      game_stats: gameStats
+    });
+    
+  } catch (err) {
+    console.error("Update rank error:", err);
+    res.status(500).json({ message: "Error updating rank" });
+  }
+});
+
+// Separate endpoint for daily goal checking (replaces auto-call from nutrition/today)
+router.post("/check-daily-goals", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const db = getDb();
+    
+    // Get user's current game stats and nutrition goals
+    const user = await db.collection("users").findOne(
+      { _id: new ObjectId(userId) },
+      { projection: { game_stats: 1, nutritionGoals: 1, username: 1 } }
+    );
+    
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    const gameStats = user.game_stats || {
+      dailyStreak: 0,
+      pointTotal: 0,
+      currentRank: 1,
+      goalsCompletedToday: false,
+      lastGoalsCompletedDate: null,
       lastDailyReset: null
     };
     
@@ -777,100 +1018,110 @@ router.post("/nutrition-streak", authMiddleware, async (req, res) => {
     const today = new Date();
     const todayStr = today.toISOString().split('T')[0];
     
-    // Check if we need to do a daily reset
-    const lastReset = gameStats.lastDailyReset ? new Date(gameStats.lastDailyReset).toISOString().split('T')[0] : null;
+    // Calculate today's nutrition totals
+    const todayStart = new Date(today);
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date(today);
+    todayEnd.setHours(23, 59, 59, 999);
     
-    let updatedGameStats = { ...gameStats };
+    const todayMeals = await db.collection("meals").find({
+      userId: new ObjectId(userId),
+      createdAt: { $gte: todayStart, $lte: todayEnd }
+    }).toArray();
     
-    // If we haven't reset today, check today's nutrition and update streaks
-    if (lastReset !== todayStr) {
-      // Get today's nutrition totals
-      const todayStart = new Date(today);
-      todayStart.setHours(0, 0, 0, 0);
-      const todayEnd = new Date(today);
-      todayEnd.setHours(23, 59, 59, 999);
+    const todayTotals = todayMeals.reduce((totals, meal) => {
+      totals.calories += meal.calories || 0;
+      totals.protein += meal.protein || 0;
+      totals.carbs += meal.carbs || 0;
+      totals.fat += meal.fat || 0;
+      return totals;
+    }, { calories: 0, protein: 0, carbs: 0, fat: 0 });
+    
+    // Get today's water intake
+    const waterRecord = await db.collection("water_intake").findOne({
+      userId: new ObjectId(userId),
+      date: todayStr
+    });
+    const waterIntake = waterRecord ? waterRecord.intake : 0;
+    
+    // Check if nutrition goals are currently met
+    let goalsMet = false;
+    let goalsMetPercentage = 0;
+    if (nutritionGoals) {
+      const calorieGoal = nutritionGoals.calorieGoal || 2000;
+      const proteinGoal = nutritionGoals.proteinGoal || 100;
+      const carbsGoal = nutritionGoals.carbsGoal || 250;
+      const fatGoal = nutritionGoals.fatGoal || 60;
+      const waterGoal = nutritionGoals.waterIntakeGoal || 2000;
       
-      const todayMeals = await db.collection("meals").find({
-        userId: new ObjectId(userId),
-        createdAt: {
-          $gte: todayStart,
-          $lte: todayEnd
-        }
-      }).toArray();
+      const goalCompletions = [
+        Math.min(todayTotals.calories / calorieGoal, 1),
+        Math.min(todayTotals.protein / proteinGoal, 1),
+        Math.min(todayTotals.carbs / carbsGoal, 1),
+        Math.min(todayTotals.fat / fatGoal, 1),
+        Math.min(waterIntake / waterGoal, 1)
+      ];
       
-      // Calculate today's totals
-      const todayTotals = todayMeals.reduce((totals, meal) => {
-        totals.calories += meal.calories || 0;
-        totals.protein += meal.protein || 0;
-        totals.carbs += meal.carbs || 0;
-        totals.fat += meal.fat || 0;
-        return totals;
-      }, { calories: 0, protein: 0, carbs: 0, fat: 0 });
+      goalsMetPercentage = (goalCompletions.reduce((sum, completion) => sum + completion, 0) / goalCompletions.length) * 100;
       
-      // Get today's water intake
-      const todayStr = today.toISOString().split('T')[0];
-      const waterRecord = await db.collection("water_intake").findOne({
-        userId: new ObjectId(userId),
-        date: todayStr
-      });
-      const waterIntake = waterRecord ? waterRecord.intake : 0;
-      
-      // Check if nutrition goals were met today
-      let goalsMet = false;
-      if (nutritionGoals) {
-        const calorieGoal = nutritionGoals.calorieGoal || 2000;
-        const proteinGoal = nutritionGoals.proteinGoal || 100;
-        const carbsGoal = nutritionGoals.carbsGoal || 250;
-        const fatGoal = nutritionGoals.fatGoal || 60;
-        const waterGoal = nutritionGoals.waterIntakeGoal || 2000;
-        
-        // Goals are met if user reached 100% of each goal (including water)
-        goalsMet = (
-          todayTotals.calories >= calorieGoal &&
-          todayTotals.protein >= proteinGoal &&
-          todayTotals.carbs >= carbsGoal &&
-          todayTotals.fat >= fatGoal &&
-          waterIntake >= waterGoal
-        );
-      }
-      
-      // Update daily streak based on nutrition goals
-      if (goalsMet) {
-        updatedGameStats.dailyStreak = (updatedGameStats.dailyStreak || 0) + 1;
-        // Add points for meeting goals (10 points per day)
-        updatedGameStats.pointTotal = (updatedGameStats.pointTotal || 0) + 10;
-      } else {
-        // Reset streak if goals weren't met
-        updatedGameStats.dailyStreak = 0;
-      }
-      
-      // Update rank based on daily streak
-      if (updatedGameStats.dailyStreak >= 30) {
-        updatedGameStats.currentRank = 3; // Gold
-      } else if (updatedGameStats.dailyStreak >= 15) {
-        updatedGameStats.currentRank = 2; // Silver
-      } else if (updatedGameStats.dailyStreak >= 7) {
-        updatedGameStats.currentRank = 1; // Bronze
-      }
-      
-      // Mark today as reset
-      updatedGameStats.lastDailyReset = new Date();
+      goalsMet = (
+        todayTotals.calories >= calorieGoal &&
+        todayTotals.protein >= proteinGoal &&
+        todayTotals.carbs >= carbsGoal &&
+        todayTotals.fat >= fatGoal &&
+        waterIntake >= waterGoal
+      );
     }
     
-    // Update user's game stats
-    await db.collection("users").updateOne(
-      { _id: new ObjectId(userId) },
-      { $set: { game_stats: updatedGameStats } }
-    );
+    let updatedGameStats = { ...gameStats };
+    let pointsAwarded = false;
+    
+    // Handle goal completion - only award points once per day
+    if (goalsMet && !gameStats.goalsCompletedToday) {
+      console.log(`🎉 Goals completed for user ${user.username}! Awarding points and increasing streak.`);
+      
+      // Increase streak and award points
+      updatedGameStats.dailyStreak = (gameStats.dailyStreak || 0) + 1;
+      updatedGameStats.pointTotal = (gameStats.pointTotal || 0) + 10;
+      updatedGameStats.goalsCompletedToday = true;
+      updatedGameStats.lastGoalsCompletedDate = new Date();
+      pointsAwarded = true;
+      
+      console.log(`📈 New streak: ${updatedGameStats.dailyStreak}, Points: ${updatedGameStats.pointTotal}`);
+    }
+    
+    // Update rank based on current streak
+    const previousRank = updatedGameStats.currentRank;
+    updatedGameStats.currentRank = calculateRank(updatedGameStats.dailyStreak);
+    
+    // Log rank changes
+    if (previousRank !== updatedGameStats.currentRank) {
+      const rankNames = { 1: 'Bronze', 2: 'Silver', 3: 'Gold' };
+      console.log(`🏆 Rank updated for user ${user.username}: ${rankNames[previousRank]} → ${rankNames[updatedGameStats.currentRank]}`);
+    }
+    
+    // Update database if anything changed
+    if (pointsAwarded || previousRank !== updatedGameStats.currentRank) {
+      await db.collection("users").updateOne(
+        { _id: new ObjectId(userId) },
+        { $set: { game_stats: updatedGameStats } }
+      );
+    }
     
     res.status(200).json({
-      message: "Nutrition streak updated successfully",
-      game_stats: updatedGameStats
+      message: "Daily goals checked successfully",
+      game_stats: updatedGameStats,
+      goals_status: {
+        goals_met: goalsMet,
+        goals_completion_percentage: Math.round(goalsMetPercentage),
+        points_awarded: pointsAwarded,
+        nutrition_totals: { ...todayTotals, water: waterIntake }
+      }
     });
     
   } catch (err) {
-    console.error("Nutrition streak update error:", err);
-    res.status(500).json({ message: "Error updating nutrition streak" });
+    console.error("Check daily goals error:", err);
+    res.status(500).json({ message: "Error checking daily goals" });
   }
 });
 
