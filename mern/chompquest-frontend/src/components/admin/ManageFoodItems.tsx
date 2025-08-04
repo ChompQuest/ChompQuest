@@ -1,21 +1,22 @@
 import React, { useState } from 'react';
 import './ManageFoodItems.css';
-import type { NutrientData } from '../types';
 
 interface ManageFoodItemsProps {
-  currentLookup: { [key: string]: NutrientData };
-  onAdd: (foodName: string, nutrients: NutrientData) => void;
   onClose: () => void;
+  onSuccess?: () => void; // Callback when food is successfully added
+  onError?: (errorMessage: string) => void; // Callback when food addition fails
 }
 
-const ManageFoodItems: React.FC<ManageFoodItemsProps> = ({ currentLookup, onAdd, onClose }) => {
+const ManageFoodItems: React.FC<ManageFoodItemsProps> = ({ onClose, onSuccess, onError }) => {
   const [foodName, setFoodName] = useState('');
   const [calories, setCalories] = useState<number | ''>('');
   const [protein, setProtein] = useState<number | ''>('');
   const [carbs, setCarbs] = useState<number | ''>('');
   const [fats, setFats] = useState<number | ''>('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleAddFood = () => {
+  const handleAddFood = async () => {
     if (!foodName || calories === '' || protein === '' || carbs === '' || fats === '') {
       alert('Please fill in all fields.');
       return;
@@ -43,25 +44,63 @@ const ManageFoodItems: React.FC<ManageFoodItemsProps> = ({ currentLookup, onAdd,
       return;
     }
 
-    const nutrients: NutrientData = {
-      calories: numCalories,
-      protein: numProtein,
-      carbs: numCarbs,
-      fats: numFats,
-    };
+    setLoading(true);
+    setError(null);
 
-    if (currentLookup[foodName]) {
-      alert('A food item with this name already exists. Please choose a different name.');
-      return;
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch('http://localhost:5050/admin/food-items', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: foodName.trim(),
+          calories: numCalories,
+          protein: numProtein,
+          carbs: numCarbs,
+          fats: numFats,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Failed to add food item: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('Food item added successfully:', data);
+
+      // Clear form and close modal
+      setFoodName('');
+      setCalories('');
+      setProtein('');
+      setCarbs('');
+      setFats('');
+      
+      // Notify parent component of success
+      if (onSuccess) {
+        onSuccess();
+      }
+      
+      onClose();
+    } catch (err) {
+      console.error('Error adding food item:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to add food item';
+      setError(errorMessage);
+      
+      // Notify parent component of error
+      if (onError) {
+        onError(errorMessage);
+      }
+    } finally {
+      setLoading(false);
     }
-    onAdd(foodName, nutrients);
-
-    setFoodName('');
-    setCalories('');
-    setProtein('');
-    setCarbs('');
-    setFats('');
-    onClose();
   };
 
   return (
@@ -114,9 +153,20 @@ const ManageFoodItems: React.FC<ManageFoodItemsProps> = ({ currentLookup, onAdd,
             />
           </label>
         </div>
+        
+        {error && (
+          <div className="error-message" style={{color: 'red', margin: '10px 0', padding: '10px', backgroundColor: '#fee', borderRadius: '4px'}}>
+            {error}
+          </div>
+        )}
+        
         <div className="food-form-actions">
-          <button onClick={handleAddFood} className="action-button primary-button">
-            Add Food Item
+          <button 
+            onClick={handleAddFood} 
+            className="action-button primary-button"
+            disabled={loading}
+          >
+            {loading ? 'Adding Food Item...' : 'Add Food Item'}
           </button>
         </div>
       </div>

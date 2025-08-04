@@ -387,4 +387,47 @@ router.post("/water", authMiddleware, async (req, res) => {
   }
 });
 
+// GET /nutrition/food-items - Get all food items for users (with optional search)
+router.get("/food-items", authMiddleware, async (req, res) => {
+  try {
+    const db = getDb();
+    const { search, limit = 100 } = req.query;
+    
+    // Build search query
+    let query = {};
+    if (search && search.trim()) {
+      query.name = {
+        $regex: search.trim(),
+        $options: 'i' // Case insensitive
+      };
+    }
+    
+    // Get food items with optional search filter
+    const foodItems = await db.collection("food_items")
+      .find(query)
+      .sort({ name: 1 })
+      .limit(parseInt(limit))
+      .toArray();
+
+    // Format response for frontend (simpler than admin endpoint)
+    const formattedItems = foodItems.map(item => ({
+      name: item.name,
+      calories: item.calories,
+      protein: item.protein,
+      carbs: item.carbs,
+      fats: item.fats
+    }));
+
+    res.status(200).json({
+      message: "Food items retrieved successfully",
+      foodItems: formattedItems,
+      total: formattedItems.length
+    });
+    
+  } catch (error) {
+    console.error("Error fetching food items:", error);
+    res.status(500).json({ message: "Error fetching food items" });
+  }
+});
+
 export default router; 

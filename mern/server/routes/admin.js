@@ -281,14 +281,38 @@ router.delete("/users/:id", adminMiddleware, async (req, res) => {
 
 // ===== FOOD ITEM MANAGEMENT ENDPOINTS =====
 
-// Get all food items (admin only)
+// Get all food items (admin only) - with optional search, limit, and skip for pagination
 router.get("/food-items", adminMiddleware, async (req, res) => {
   try {
     const db = getDb();
-    const foodItems = await db.collection("food_items")
-      .find({})
-      .sort({ name: 1 })
-      .toArray();
+    const { search, limit, skip } = req.query;
+    
+    // Build query filter
+    let filter = {};
+    
+    // Add search functionality
+    if (search && search.trim()) {
+      filter.name = {
+        $regex: search.trim(),
+        $options: 'i' // Case insensitive
+      };
+    }
+
+    let query = db.collection("food_items")
+      .find(filter)
+      .sort({ name: 1 });
+    
+    // Apply skip if specified
+    if (skip) {
+      query = query.skip(parseInt(skip));
+    }
+    // Apply limit if specified
+    if (limit) {
+      query = query.limit(parseInt(limit));
+    }
+    
+    const foodItems = await query.toArray();
+    const total = await db.collection("food_items").countDocuments(filter);
 
     res.status(200).json({
       message: "Food items retrieved successfully",
@@ -301,7 +325,8 @@ router.get("/food-items", adminMiddleware, async (req, res) => {
         fats: item.fats,
         createdAt: item.createdAt,
         updatedAt: item.updatedAt
-      }))
+      })),
+      total
     });
   } catch (error) {
     console.error("Error fetching food items:", error);

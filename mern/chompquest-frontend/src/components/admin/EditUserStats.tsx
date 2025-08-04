@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import '../mainPage/AddCustomWater.css';
+import './DeleteFoodModal.css';
 
 interface UserData {
   id: string;
@@ -46,57 +46,80 @@ const EditUserStats: React.FC<EditUserStatsProps> = ({ onClose, onSave, user }) 
   };
 
   return (
-    <div className="add-custom-water-form">
-      <div style={{ textAlign: 'center', fontSize: '1.6rem', color: '#333', marginBottom: '2rem' }}>
-        Edit {user.username} stats
-      </div>
-
-      <form onSubmit={handleSubmit}>
-        <label className="form-label" style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ minWidth: '80px' }}>Points:</span>
-          <input
-            type="number"
-            value={points}
-            onChange={(e) => {
-              setPoints(e.target.value);
-              setError(null);
-            }}
-            min="0"
-            step="1"
-            className="form-input"
-            style={{ flex: 1, marginLeft: '1rem', marginTop: 0 }}
-            required
-          />
-        </label>
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <h2>Edit {user.username} stats</h2>
         
-        <label className="form-label" style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ minWidth: '80px' }}>Streak:</span>
-          <input
-            type="number"
-            value={streak}
-            onChange={(e) => {
-              setStreak(e.target.value);
-              setError(null);
-            }}
-            min="0"
-            step="1"
-            className="form-input"
-            style={{ flex: 1, marginLeft: '1rem', marginTop: 0 }}
-            required
-          />
-        </label>
+        <form onSubmit={handleSubmit}>
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '15px' }}>
+              <span style={{ minWidth: '80px', fontWeight: '500' }}>Points:</span>
+              <input
+                type="number"
+                value={points}
+                onChange={(e) => {
+                  setPoints(e.target.value);
+                  setError(null);
+                }}
+                min="0"
+                step="1"
+                style={{ 
+                  flex: 1, 
+                  marginLeft: '1rem', 
+                  padding: '8px 12px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '14px'
+                }}
+                required
+              />
+            </label>
+            
+            <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ minWidth: '80px', fontWeight: '500' }}>Streak:</span>
+              <input
+                type="number"
+                value={streak}
+                onChange={(e) => {
+                  setStreak(e.target.value);
+                  setError(null);
+                }}
+                min="0"
+                step="1"
+                style={{ 
+                  flex: 1, 
+                  marginLeft: '1rem', 
+                  padding: '8px 12px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '14px'
+                }}
+                required
+              />
+            </label>
+          </div>
 
-        {error && <p className="error-message">{error}</p>}
+          {error && <p style={{ color: 'red', textAlign: 'center', margin: '10px 0' }}>{error}</p>}
 
-        <div className="form-actions" style={{ justifyContent: 'center' }}>
-          <button type="submit" className="submit-button" disabled={!points || !streak}>
-            Save Changes
-          </button>
-          <button type="button" onClick={onClose} className="cancel-button">
-            Cancel
-          </button>
-        </div>
-      </form>
+          <div className="modal-actions">
+            <button 
+              type="button" 
+              onClick={onClose}
+              className="modal-button cancel-button"
+            >
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              className="modal-button"
+              style={{ backgroundColor: '#28a745', color: 'white' }}
+              disabled={!points || !streak}
+            >
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

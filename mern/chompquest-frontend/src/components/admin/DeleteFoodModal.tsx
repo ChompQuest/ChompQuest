@@ -1,37 +1,28 @@
 import React from 'react';
 import './DeleteFoodModal.css';
 
-interface UserData {
-  id: string;
-  name: string;
-  username: string;
-  email: string;
-  role: string;
-  registrationDate: string;
-  game_stats: {
-    dailyStreak: number;
-    pointTotal: number;
-    currentRank: number;
-  };
-}
-
-interface DeleteUserConfirmProps {
+interface DeleteFoodModalProps {
   onClose: () => void;
-  onDelete: (user: UserData) => void;
-  user: UserData;
+  onDelete: (foodId: string, foodName: string) => void;
+  foodItem: {
+    id: string;
+    name: string;
+  } | null;
 }
 
-const DeleteUserConfirm: React.FC<DeleteUserConfirmProps> = ({ onClose, onDelete, user }) => {
+const DeleteFoodModal: React.FC<DeleteFoodModalProps> = ({ onClose, onDelete, foodItem }) => {
+  if (!foodItem) return null;
+
   const handleDelete = () => {
-    onDelete(user);
+    onDelete(foodItem.id, foodItem.name);
     onClose();
   };
 
   return (
     <div className="modal-overlay">
       <div className="modal-content">
-        <h2>Delete User</h2>
-        <p>Are you sure you want to delete "{user.username}"?</p>
+        <h2>Delete Food Item</h2>
+        <p>Are you sure you want to delete "{foodItem.name}"?</p>
         <p>This action cannot be undone.</p>
         
         <div className="modal-actions">
@@ -53,4 +44,4 @@ const DeleteUserConfirm: React.FC<DeleteUserConfirmProps> = ({ onClose, onDelete
   );
 };
 
-export default DeleteUserConfirm;
+export default DeleteFoodModal; 

@@ -28,11 +28,9 @@ const RecentMealsBox: React.FC<RecentMealsBoxProps> = ({
         Add Meal
       </button>
 
-      {!isWaterModalOpen && (
-        <button onClick={onOpenAddWaterModal} className="add-water-button-main">
-          Add Water
-        </button>
-      )}
+      <button onClick={onOpenAddWaterModal} className="add-water-button-main">
+        Add Water
+      </button>
 
       <div className="recent-meals-list">
         {isLoading ? (
