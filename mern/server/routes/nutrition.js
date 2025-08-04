@@ -6,14 +6,12 @@ import fetch from "node-fetch";
 
 const router = express.Router();
 
-// Helper function to get start and end of day in user's timezone
+// Helper function to get start and end of day in UTC timezone (consistent with date strings)
 const getDayBounds = (userTimezone = 'UTC') => {
-  const now = new Date();
-  const startOfDay = new Date(now);
-  startOfDay.setHours(0, 0, 0, 0);
-  
-  const endOfDay = new Date(now);
-  endOfDay.setHours(23, 59, 59, 999);
+  // Use UTC date to match the date strings used for water intake
+  const todayStr = new Date().toISOString().split('T')[0];
+  const startOfDay = new Date(todayStr + 'T00:00:00.000Z');
+  const endOfDay = new Date(todayStr + 'T23:59:59.999Z');
   
   return { startOfDay, endOfDay };
 };
