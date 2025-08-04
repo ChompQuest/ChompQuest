@@ -1064,6 +1064,7 @@ router.post("/check-daily-goals", authMiddleware, async (req, res) => {
       
       goalsMetPercentage = (goalCompletions.reduce((sum, completion) => sum + completion, 0) / goalCompletions.length) * 100;
       
+      // Goals are met if user reached 100% of each goal (including water)
       goalsMet = (
         todayTotals.calories >= calorieGoal &&
         todayTotals.protein >= proteinGoal &&
