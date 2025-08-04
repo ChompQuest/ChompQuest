@@ -76,3 +76,9 @@
     gap: 16px;
   }
 }
+
+/* Make AddMeal modal wider - specific to AddMeal only */
+.add-meal-modal-wrapper .modal-content {
+  max-width: 950px !important;
+  width: 95% !important;
+}

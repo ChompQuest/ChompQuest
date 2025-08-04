@@ -52,25 +52,6 @@ router.get("/today", authMiddleware, async (req, res) => {
     const userId = req.user.id;
     const db = getDb();
     
-    // First, update nutrition streak and check daily reset
-    try {
-      const streakResponse = await fetch(`http://localhost:5050/user/nutrition-streak`, {
-        method: 'POST',
-        headers: {
-          'Authorization': req.headers.authorization,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (streakResponse.ok) {
-        const streakData = await streakResponse.json();
-        console.log('Nutrition streak updated:', streakData.game_stats);
-      }
-    } catch (streakErr) {
-      console.error('Error updating nutrition streak:', streakErr);
-      // Continue with nutrition data even if streak update fails
-    }
-    
     // Get user's nutrition goals
     const user = await db.collection("users").findOne(
       { _id: new ObjectId(userId) },
@@ -403,6 +384,49 @@ router.post("/water", authMiddleware, async (req, res) => {
   } catch (err) {
     console.error("Update water intake error:", err);
     res.status(500).json({ message: "Error updating water intake" });
+  }
+});
+
+// GET /nutrition/food-items - Get all food items for users (with optional search)
+router.get("/food-items", authMiddleware, async (req, res) => {
+  try {
+    const db = getDb();
+    const { search, limit = 100 } = req.query;
+    
+    // Build search query
+    let query = {};
+    if (search && search.trim()) {
+      query.name = {
+        $regex: search.trim(),
+        $options: 'i' // Case insensitive
+      };
+    }
+    
+    // Get food items with optional search filter
+    const foodItems = await db.collection("food_items")
+      .find(query)
+      .sort({ name: 1 })
+      .limit(parseInt(limit))
+      .toArray();
+
+    // Format response for frontend (simpler than admin endpoint)
+    const formattedItems = foodItems.map(item => ({
+      name: item.name,
+      calories: item.calories,
+      protein: item.protein,
+      carbs: item.carbs,
+      fats: item.fats
+    }));
+
+    res.status(200).json({
+      message: "Food items retrieved successfully",
+      foodItems: formattedItems,
+      total: formattedItems.length
+    });
+    
+  } catch (error) {
+    console.error("Error fetching food items:", error);
+    res.status(500).json({ message: "Error fetching food items" });
   }
 });
 

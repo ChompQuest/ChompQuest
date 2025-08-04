@@ -7,6 +7,9 @@ import SetNutritionGoals from './components/SetNutritionGoals';
 import Dashboard from './components/mainPage/Dashboard';
 import type { NutrientData, LoggedMealData } from './components/types';
 import AddWaterModal from './components/mainPage/AddCustomWaterModal';
+
+import AdminDashboard from './components/admin/AdminDashboard';
+
 import './App.css';
 
 interface GameStats {
@@ -25,6 +28,16 @@ function App() {
     }
     return false;
   });
+
+  // Helper function to check if current user is admin
+  const isUserAdmin = () => {
+    const user = localStorage.getItem('user');
+    if (user) {
+      const userData = JSON.parse(user);
+      return userData.role === 'admin';
+    }
+    return false;
+  };
 
   const [gameStats, setGameStats] = useState<GameStats>(() => {
     // Try to get game stats from localStorage on app start
@@ -153,6 +166,26 @@ function App() {
         if (data.gameStats) {
           updateGameStats(data.gameStats);
         }
+        
+        // Call safe rank update endpoint on login
+        try {
+          const rankResponse = await fetch('http://localhost:5050/user/update-rank', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          if (rankResponse.ok) {
+            const rankData = await rankResponse.json();
+            updateGameStats(rankData.game_stats);
+            console.log('Rank updated on login:', rankData.game_stats);
+          }
+        } catch (rankErr) {
+          console.error('Error updating rank on login:', rankErr);
+          // Continue even if rank update fails
+        }
       } else {
         console.error('Failed to fetch daily nutrition:', response.statusText);
       }
@@ -204,6 +237,25 @@ function App() {
         
         // Refresh nutrition data from backend
         await fetchDailyNutrition();
+        
+        // Check daily goals after adding meal
+        try {
+          const goalsResponse = await fetch('http://localhost:5050/user/check-daily-goals', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          if (goalsResponse.ok) {
+            const goalsData = await goalsResponse.json();
+            updateGameStats(goalsData.game_stats);
+            console.log('Goals checked after meal:', goalsData.goals_status);
+          }
+        } catch (goalsErr) {
+          console.error('Error checking goals after meal:', goalsErr);
+        }
       } else {
         console.error('Failed to add meal:', response.statusText);
       }
@@ -252,6 +304,25 @@ function App() {
         // Update local state
         setCurrentWaterIntake(newTotal);
         console.log('Water intake updated successfully');
+        
+        // Check daily goals after adding water
+        try {
+          const goalsResponse = await fetch('http://localhost:5050/user/check-daily-goals', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          if (goalsResponse.ok) {
+            const goalsData = await goalsResponse.json();
+            updateGameStats(goalsData.game_stats);
+            console.log('Goals checked after water:', goalsData.goals_status);
+          }
+        } catch (goalsErr) {
+          console.error('Error checking goals after water:', goalsErr);
+        }
       } else {
         console.error('Failed to update water intake:', response.statusText);
       }
@@ -275,7 +346,13 @@ function App() {
         <Routes>
           <Route
             path="/signin"
-            element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <SignIn onLogin={handleLogin} />}
+            element={
+              isLoggedIn ? (
+                isUserAdmin() ? <Navigate to="/admin/dashboard" replace /> : <Navigate to="/dashboard" replace />
+              ) : (
+                <SignIn onLogin={handleLogin} />
+              )
+            }
           />
           <Route
             path="/signup"
@@ -305,10 +382,16 @@ function App() {
             }
           />
 
-          {/* if they are logged in -> dashboard, if not -> login */}
+          {/* if they are logged in -> appropriate dashboard, if not -> login */}
           <Route
             path="/"
-            element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <Navigate to="/signin" replace />}
+            element={
+              isLoggedIn ? (
+                isUserAdmin() ? <Navigate to="/admin/dashboard" replace /> : <Navigate to="/dashboard" replace />
+              ) : (
+                <Navigate to="/signin" replace />
+              )
+            }
           />
 
           {/* set nutrition goals route - for new users after signup */}
@@ -325,6 +408,26 @@ function App() {
                 ? <NutritionGoals onLogin={handleLogin} onLogout={handleLogout} />
                 : <Navigate to="/signin" replace />
             }
+          />
+
+          {/* Admin dashboard - only accessible if user is logged in and is an admin */}
+          <Route
+            path="/admin/dashboard"
+            element={
+              isLoggedIn && isUserAdmin() ? (
+                <AdminDashboard onLogout={handleLogout} />
+              ) : isLoggedIn ? (
+                <Navigate to="/dashboard" replace />
+              ) : (
+                <Navigate to="/signin" replace />
+              )
+            }
+          />
+
+          {/* Legacy admin test route - redirect to new admin dashboard */}
+          <Route 
+            path="/admin-test" 
+            element={<Navigate to="/admin/dashboard" replace />} 
           />
 
           {/* catch all route for any issues */}

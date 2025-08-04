@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import NutritionTracker from './NutritionTracker';
 import type { NutrientData, LoggedMealData, Meal, SelectableNutrient } from '../types';
 import '../../App.css';
+import './Dashboard.css';
 import Modal from '../Modal'; 
 import AddMeal from '../AddMeal';
 import ProfilePicture from './ProfilePicture';
@@ -291,9 +292,11 @@ const Dashboard: React.FC<DashboardProps> = ({
         />
 
         {showAddMealModal && (
-          <Modal onClose={handleCloseAddMealModal} title="Add New Meal">
-            <AddMeal onClose={handleCloseAddMealModal} onAddMeal={handleLogMealAndRefreshRecent} />
-          </Modal>
+          <div className="add-meal-modal-wrapper">
+            <Modal onClose={handleCloseAddMealModal} title="Add New Meal">
+              <AddMeal onClose={handleCloseAddMealModal} onAddMeal={handleLogMealAndRefreshRecent} />
+            </Modal>
+          </div>
         )}
       </div>
     </div>
