@@ -835,8 +835,8 @@ router.post("/nutrition-streak", authMiddleware, async (req, res) => {
       // Update daily streak based on nutrition goals
       if (goalsMet) {
         updatedGameStats.dailyStreak = (updatedGameStats.dailyStreak || 0) + 1;
-        // Add points for meeting goals (10 points per day)
-        updatedGameStats.pointTotal = (updatedGameStats.pointTotal || 0) + 10;
+        // Note: Individual goal points are now handled in real-time by checkAndUpdatePoints
+        // This endpoint only handles daily streak for completing all goals
       } else {
         // Reset streak if goals weren't met
         updatedGameStats.dailyStreak = 0;
