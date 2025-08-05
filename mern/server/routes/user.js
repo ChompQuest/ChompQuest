@@ -803,6 +803,13 @@ router.post("/nutrition-streak", authMiddleware, async (req, res) => {
       
       // Reset daily flags for new day
       updatedGameStats.goalsCompletedToday = false;
+      updatedGameStats.individualGoalsCompletedToday = {
+        calories: false,
+        protein: false,
+        carbs: false,
+        fat: false,
+        water: false
+      };
       updatedGameStats.lastDailyReset = new Date();
       
       // Only reset streak if we have clear evidence goals were NOT completed yesterday
@@ -887,17 +894,81 @@ router.post("/nutrition-streak", authMiddleware, async (req, res) => {
       );
     }
     
-    // Handle goal completion - only award points once per day
-    if (goalsMet && !updatedGameStats.goalsCompletedToday) {
-      console.log(`🎉 Goals completed for user ${userId}! Awarding points and increasing streak.`);
+    let individualGoalsCompleted = 0;
+    let totalPointsAwarded = 0;
+    
+    // Check individual goal completions
+    const calorieGoal = nutritionGoals?.calorieGoal || 2000;
+    const proteinGoal = nutritionGoals?.proteinGoal || 100;
+    const carbsGoal = nutritionGoals?.carbsGoal || 250;
+    const fatGoal = nutritionGoals?.fatGoal || 60;
+    const waterGoal = nutritionGoals?.waterIntakeGoal || 2000;
+    
+    // Track which individual goals are completed
+    const individualGoals = {
+      calories: todayTotals.calories >= calorieGoal,
+      protein: todayTotals.protein >= proteinGoal,
+      carbs: todayTotals.carbs >= carbsGoal,
+      fat: todayTotals.fat >= fatGoal,
+      water: waterIntake >= waterGoal
+    };
+    
+    // Count completed individual goals
+    individualGoalsCompleted = Object.values(individualGoals).filter(completed => completed).length;
+    
+    // Get previously completed individual goals for today
+    const previouslyCompletedGoals = updatedGameStats.individualGoalsCompletedToday || {
+      calories: false,
+      protein: false,
+      carbs: false,
+      fat: false,
+      water: false
+    };
+    
+    // Calculate newly completed goals
+    const newlyCompletedGoals = {
+      calories: individualGoals.calories && !previouslyCompletedGoals.calories,
+      protein: individualGoals.protein && !previouslyCompletedGoals.protein,
+      carbs: individualGoals.carbs && !previouslyCompletedGoals.carbs,
+      fat: individualGoals.fat && !previouslyCompletedGoals.fat,
+      water: individualGoals.water && !previouslyCompletedGoals.water
+    };
+    
+    // Count newly completed goals
+    const newlyCompletedCount = Object.values(newlyCompletedGoals).filter(completed => completed).length;
+    
+    // Award 10 points for each newly completed individual goal
+    if (newlyCompletedCount > 0) {
+      const pointsForNewGoals = newlyCompletedCount * 10;
+      updatedGameStats.pointTotal = (updatedGameStats.pointTotal || 0) + pointsForNewGoals;
+      totalPointsAwarded += pointsForNewGoals;
       
-      // Increase streak and award points
+      // Update the tracking of completed individual goals
+      updatedGameStats.individualGoalsCompletedToday = {
+        calories: individualGoals.calories,
+        protein: individualGoals.protein,
+        carbs: individualGoals.carbs,
+        fat: individualGoals.fat,
+        water: individualGoals.water
+      };
+      
+      console.log(`🎯 Newly completed goals: ${newlyCompletedCount}, Awarding ${pointsForNewGoals} points`);
+    }
+    
+    // Handle all goals completion - award bonus points and increase streak
+    if (goalsMet && !updatedGameStats.goalsCompletedToday) {
+      console.log(`🎉 ALL goals completed for user ${userId}! Awarding bonus points and increasing streak.`);
+      
+      // Award 50 bonus points for completing all goals
+      updatedGameStats.pointTotal += 50;
+      totalPointsAwarded += 50;
+      
+      // Increase streak
       updatedGameStats.dailyStreak = (updatedGameStats.dailyStreak || 0) + 1;
-      updatedGameStats.pointTotal = (updatedGameStats.pointTotal || 0) + 10;
       updatedGameStats.goalsCompletedToday = true;
       updatedGameStats.lastGoalsCompletedDate = new Date();
       
-      console.log(`📈 New streak: ${updatedGameStats.dailyStreak}, Points: ${updatedGameStats.pointTotal}`);
+      console.log(`📈 New streak: ${updatedGameStats.dailyStreak}, Total points awarded: ${totalPointsAwarded}`);
     }
     
     // Always calculate rank based on current streak (immediate updates)
@@ -925,6 +996,9 @@ router.post("/nutrition-streak", authMiddleware, async (req, res) => {
         goals_completion_percentage: Math.round(goalsMetPercentage),
         goals_completed_today: updatedGameStats.goalsCompletedToday,
         is_new_day: isNewDay,
+        total_points_awarded: totalPointsAwarded,
+        individual_goals_completed: individualGoalsCompleted,
+        individual_goals: individualGoals,
         nutrition_totals: {
           ...todayTotals,
           water: waterIntake
@@ -1076,19 +1150,85 @@ router.post("/check-daily-goals", authMiddleware, async (req, res) => {
     
     let updatedGameStats = { ...gameStats };
     let pointsAwarded = false;
+    let individualGoalsCompleted = 0;
+    let totalPointsAwarded = 0;
     
-    // Handle goal completion - only award points once per day
-    if (goalsMet && !gameStats.goalsCompletedToday) {
-      console.log(`🎉 Goals completed for user ${user.username}! Awarding points and increasing streak.`);
+    // Check individual goal completions
+    const calorieGoal = nutritionGoals?.calorieGoal || 2000;
+    const proteinGoal = nutritionGoals?.proteinGoal || 100;
+    const carbsGoal = nutritionGoals?.carbsGoal || 250;
+    const fatGoal = nutritionGoals?.fatGoal || 60;
+    const waterGoal = nutritionGoals?.waterIntakeGoal || 2000;
+    
+    // Track which individual goals are completed
+    const individualGoals = {
+      calories: todayTotals.calories >= calorieGoal,
+      protein: todayTotals.protein >= proteinGoal,
+      carbs: todayTotals.carbs >= carbsGoal,
+      fat: todayTotals.fat >= fatGoal,
+      water: waterIntake >= waterGoal
+    };
+    
+    // Count completed individual goals
+    individualGoalsCompleted = Object.values(individualGoals).filter(completed => completed).length;
+    
+    // Get previously completed individual goals for today
+    const previouslyCompletedGoals = gameStats.individualGoalsCompletedToday || {
+      calories: false,
+      protein: false,
+      carbs: false,
+      fat: false,
+      water: false
+    };
+    
+    // Calculate newly completed goals
+    const newlyCompletedGoals = {
+      calories: individualGoals.calories && !previouslyCompletedGoals.calories,
+      protein: individualGoals.protein && !previouslyCompletedGoals.protein,
+      carbs: individualGoals.carbs && !previouslyCompletedGoals.carbs,
+      fat: individualGoals.fat && !previouslyCompletedGoals.fat,
+      water: individualGoals.water && !previouslyCompletedGoals.water
+    };
+    
+    // Count newly completed goals
+    const newlyCompletedCount = Object.values(newlyCompletedGoals).filter(completed => completed).length;
+    
+    // Always update individual goal tracking
+    updatedGameStats.individualGoalsCompletedToday = {
+      calories: individualGoals.calories,
+      protein: individualGoals.protein,
+      carbs: individualGoals.carbs,
+      fat: individualGoals.fat,
+      water: individualGoals.water
+    };
+    
+    // Award 10 points for each newly completed individual goal
+    if (newlyCompletedCount > 0) {
+      const pointsForNewGoals = newlyCompletedCount * 10;
+      updatedGameStats.pointTotal = (gameStats.pointTotal || 0) + pointsForNewGoals;
+      totalPointsAwarded += pointsForNewGoals;
       
-      // Increase streak and award points
+      console.log(`🎯 Newly completed goals: ${newlyCompletedCount}, Awarding ${pointsForNewGoals} points`);
+      console.log(`🎯 Previous points: ${gameStats.pointTotal || 0}, New total: ${updatedGameStats.pointTotal}`);
+    } else {
+      console.log(`ℹ️ No newly completed goals for ${user.username}`);
+    }
+    
+    // Handle all goals completion - award bonus points and increase streak
+    if (goalsMet && !gameStats.goalsCompletedToday) {
+      console.log(`🎉 ALL goals completed for user ${user.username}! Awarding bonus points and increasing streak.`);
+      
+      // Award 50 bonus points for completing all goals
+      updatedGameStats.pointTotal += 50;
+      totalPointsAwarded += 50;
+      
+      // Increase streak
       updatedGameStats.dailyStreak = (gameStats.dailyStreak || 0) + 1;
-      updatedGameStats.pointTotal = (gameStats.pointTotal || 0) + 10;
       updatedGameStats.goalsCompletedToday = true;
       updatedGameStats.lastGoalsCompletedDate = new Date();
       pointsAwarded = true;
       
-      console.log(`📈 New streak: ${updatedGameStats.dailyStreak}, Points: ${updatedGameStats.pointTotal}`);
+      console.log(`📈 New streak: ${updatedGameStats.dailyStreak}, Total points awarded: ${totalPointsAwarded}`);
     }
     
     // Update rank based on current streak
@@ -1101,13 +1241,36 @@ router.post("/check-daily-goals", authMiddleware, async (req, res) => {
       console.log(`🏆 Rank updated for user ${user.username}: ${rankNames[previousRank]} → ${rankNames[updatedGameStats.currentRank]}`);
     }
     
-    // Update database if anything changed
-    if (pointsAwarded || previousRank !== updatedGameStats.currentRank) {
-      await db.collection("users").updateOne(
-        { _id: new ObjectId(userId) },
-        { $set: { game_stats: updatedGameStats } }
-      );
+    // Always update database to ensure immediate updates for admin dashboard
+    // This ensures individual goal tracking and points are immediately saved
+    console.log(`🔄 Attempting to update database for user ${user.username}`);
+    console.log(`🔄 updatedGameStats:`, JSON.stringify(updatedGameStats, null, 2));
+    
+    const updateResult = await db.collection("users").updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: { game_stats: updatedGameStats } }
+    );
+    
+    if (!updateResult.acknowledged || updateResult.modifiedCount === 0) {
+      console.error(`❌ Database update failed for user ${userId}:`, updateResult);
+      throw new Error("Failed to update user game stats in database");
     }
+    
+    console.log(`💾 Database update result:`, updateResult);
+    console.log(`💾 Points in updatedGameStats: ${updatedGameStats.pointTotal}`);
+    
+    if (totalPointsAwarded > 0) {
+      console.log(`💾 Database updated: ${totalPointsAwarded} points awarded to ${user.username}`);
+    } else {
+      console.log(`ℹ️ No points awarded this time for ${user.username}`);
+    }
+    
+    // Verify the update by reading back from database
+    const verifyUser = await db.collection("users").findOne(
+      { _id: new ObjectId(userId) },
+      { projection: { game_stats: 1 } }
+    );
+    console.log(`✅ Verified database state - Points: ${verifyUser?.game_stats?.pointTotal || 0}`);
     
     res.status(200).json({
       message: "Daily goals checked successfully",
@@ -1116,13 +1279,21 @@ router.post("/check-daily-goals", authMiddleware, async (req, res) => {
         goals_met: goalsMet,
         goals_completion_percentage: Math.round(goalsMetPercentage),
         points_awarded: pointsAwarded,
+        total_points_awarded: totalPointsAwarded,
+        individual_goals_completed: individualGoalsCompleted,
+        individual_goals: individualGoals,
         nutrition_totals: { ...todayTotals, water: waterIntake }
       }
     });
     
   } catch (err) {
-    console.error("Check daily goals error:", err);
-    res.status(500).json({ message: "Error checking daily goals" });
+    console.error("❌ Check daily goals error for user", userId, ":", err);
+    console.error("❌ Error stack:", err.stack);
+    res.status(500).json({ 
+      message: "Error checking daily goals",
+      error: err.message,
+      userId: userId
+    });
   }
 });
 
