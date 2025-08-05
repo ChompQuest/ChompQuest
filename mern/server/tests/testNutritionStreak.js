@@ -27,6 +27,7 @@ async function testNutritionStreak() {
     
     // Test the nutrition streak logic
     const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
     
     // Add some test meals for today
     const todayStart = new Date(today);
