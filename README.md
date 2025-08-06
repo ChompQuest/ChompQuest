@@ -2,7 +2,7 @@
 
 A gamified nutrition tracking application that helps you level up your health by turning your nutrition goals into quests!
 
-This repository was forked from [mern-stack-example]([url](https://github.com/mongodb-developer/mern-stack-example)) which is based on this [MongoDB MERN tutorial]([url](https://www.mongodb.com/resources/languages/mern-stack-tutorial))
+This repository was forked from [mern-stack-example](https://github.com/mongodb-developer/mern-stack-example) which is based on this [MongoDB MERN tutorial](https://www.mongodb.com/resources/languages/mern-stack-tutorial).
 
 ## Features
 
