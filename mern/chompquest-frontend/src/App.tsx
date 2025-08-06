@@ -405,7 +405,7 @@ function App() {
             path="/nutrition-goals"
             element={
               isLoggedIn
-                ? <NutritionGoals onLogin={handleLogin} onLogout={handleLogout} />
+                ? <NutritionGoals onLogin={handleLogin} onLogout={handleLogout} onGoalsUpdate={fetchDailyNutrition} />
                 : <Navigate to="/signin" replace />
             }
           />

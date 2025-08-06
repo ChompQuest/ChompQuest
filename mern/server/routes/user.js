@@ -1063,8 +1063,8 @@ router.post("/update-rank", authMiddleware, async (req, res) => {
 
 // Separate endpoint for daily goal checking (replaces auto-call from nutrition/today)
 router.post("/check-daily-goals", authMiddleware, async (req, res) => {
+  const userId = req.user.id; // Move outside try block to ensure it's accessible in catch
   try {
-    const userId = req.user.id;
     const db = getDb();
     
     // Get user's current game stats and nutrition goals

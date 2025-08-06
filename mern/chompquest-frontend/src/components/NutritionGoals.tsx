@@ -17,9 +17,10 @@ interface LocationState {
 interface NutritionGoalsProps {
   onLogin: () => void;
   onLogout?: () => void;
+  onGoalsUpdate?: () => Promise<void>;
 }
 
-const NutritionGoals: React.FC<NutritionGoalsProps> = ({ onLogin, onLogout }) => {
+const NutritionGoals: React.FC<NutritionGoalsProps> = ({ onLogin, onLogout, onGoalsUpdate }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { isNewUser = false, userId } = (location.state as LocationState) || {};
@@ -190,6 +191,12 @@ const NutritionGoals: React.FC<NutritionGoalsProps> = ({ onLogin, onLogout }) =>
 
       if (response.ok) {
         setSuccess('Nutrition goals saved successfully!');
+        
+        // Call onGoalsUpdate to refresh the nutrition data in App.tsx
+        if (onGoalsUpdate) {
+          onGoalsUpdate();
+        }
+        
         setTimeout(() => {
           if (isNewUser) {
             // Update user data to show they're fully logged in
